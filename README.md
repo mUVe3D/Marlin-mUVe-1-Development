@@ -1,3 +1,15 @@
+Marlin firmware development branch, we are going to try to cut the GCode Post-Processor out and do the changes on the fly.
+
+Task List:
+
+Interpret GCode lines with an E-code as a line for laser-on, all others laser-off.
+Ignore E axis GCodes.
+Create new MCode for peel move, it will have definable peel speed and size. Use Slic3r layer change code to define when to peel.
+Tie Z axis GCodes into the E axis so we can still have separate addressable Z motors but move the Z axis with standard commands.
+
+
+
+
 ==========================
 Marlin 3D Printer Firmware
 ==========================
