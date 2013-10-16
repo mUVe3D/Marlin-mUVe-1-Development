@@ -226,6 +226,7 @@ float delta[3] = {0.0, 0.0, 0.0};
 //===========================================================================
 const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E'};
 static float destination[NUM_AXIS] = {  0.0, 0.0, 0.0, 0.0};
+static float peel_distance = 0;
 static float offset[3] = {0.0, 0.0, 0.0};
 static bool home_all_axis = true;
 static float feedrate = 1500.0, next_feedrate, saved_feedrate;
@@ -2436,7 +2437,14 @@ void process_commands()
         delayed_move_time = 0;
     }
     break;
-    #endif //DUAL_X_CARRIAGE         
+    #endif //DUAL_X_CARRIAGE
+
+    case 650: // M650 set peel distance
+    {
+      st_synchronize();
+      if(code_seen('S')) peel_distance = (float) code_value();
+    }
+    break;
 
     case 907: // M907 Set digital trimpot motor current using axis codes.
     {
@@ -2815,10 +2823,12 @@ void prepare_move()
 
   // Do not use feedmultiply for E or Z only moves
   if( (current_position[X_AXIS] == destination [X_AXIS]) && (current_position[Y_AXIS] == destination [Y_AXIS])) {
-      plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
+      plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS] + peel_distance, current_position[Z_AXIS], feedrate/60, active_extruder);
+      plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS] + peel_distance, destination[Z_AXIS] + peel_distance, feedrate/60, active_extruder);
+      plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate/60, active_extruder);
   }
   else {
-    plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate*feedmultiply/60/100.0, active_extruder);
+    plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate*feedmultiply/60/100.0, active_extruder);
   }
 #endif //else DELTA
   for(int8_t i=0; i < NUM_AXIS; i++) {
