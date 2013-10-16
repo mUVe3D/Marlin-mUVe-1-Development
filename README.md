@@ -3,9 +3,9 @@ Marlin firmware development branch, we are going to try to cut the GCode Post-Pr
 Task List:
 
 1. Interpret GCode lines with an E-code as a line for laser-on, all others laser-off.
-2. Ignore E axis GCodes.
-3. Create new MCode for peel move, it will have definable peel speed and size. Use Slic3r layer change code to define when to peel.
-4. Tie Z axis GCodes into the E axis so we can still have separate addressable Z motors but move the Z axis with standard commands.
+2. Ignore E axis GCodes. *actively developing*
+3. Create new MCode for peel move, it will have definable peel speed and size. Use Slic3r layer change code to define when to peel. *actively developing*
+4. Tie Z axis GCodes into the E axis so we can still have separate addressable Z motors but move the Z axis with standard commands. *actively developing*
 
 
 
