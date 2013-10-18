@@ -2443,6 +2443,10 @@ void process_commands()
     {
       st_synchronize();
       if(code_seen('S')) peel_distance = (float) code_value();
+      else {
+          peel_distance=2;
+        }
+        break;
     }
     break;
 
