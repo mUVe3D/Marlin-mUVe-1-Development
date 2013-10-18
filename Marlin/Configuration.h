@@ -218,7 +218,7 @@
 //if PREVENT_DANGEROUS_EXTRUDE is on, you can still disable (uncomment) very long bits of extrusion separately.
 #define PREVENT_LENGTHY_EXTRUDE
 
-#define EXTRUDE_MINTEMP 170
+#define EXTRUDE_MINTEMP 0
 #define EXTRUDE_MAXLENGTH (X_MAX_LENGTH+Y_MAX_LENGTH) //prevent extrusion of very large distances.
 
 //===========================================================================
@@ -359,7 +359,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 // default settings
 
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {36.36,36.36,640,640}  // default steps per unit for Ultimaker
-#define DEFAULT_MAX_FEEDRATE          {600, 600, 10, 10}    // (mm/sec)
+#define DEFAULT_MAX_FEEDRATE          {600, 600, 4, 4}    // (mm/sec)
 #define DEFAULT_MAX_ACCELERATION      {4000,4000,2,2}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 
 #define DEFAULT_ACCELERATION          3000    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
