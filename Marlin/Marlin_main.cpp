@@ -996,7 +996,7 @@ void process_commands()
     case 1: // G1
       if(Stopped == false) {
         get_coordinates(); // For X Y Z E F
-
+        
         prepare_move();
         //ClearToSend();
         return;
@@ -2658,6 +2658,7 @@ void get_coordinates()
     next_feedrate = code_value();
     if(next_feedrate > 0.0) feedrate = next_feedrate;
   }
+  
   #ifdef FWRETRACT
   if(autoretract_enabled)
   if( !(seen[X_AXIS] || seen[Y_AXIS] || seen[Z_AXIS]) && seen[E_AXIS])
@@ -2836,13 +2837,19 @@ void prepare_move()
   }
 #endif //DUAL_X_CARRIAGE
 
+  digitalWrite(9, 0); //turn off laser before deciding move type
+  analogWrite(9, 0); //turn off laser before deciding move type
   // Do not use feedmultiply for E or Z only moves
   if( (current_position[X_AXIS] == destination [X_AXIS]) && (current_position[Y_AXIS] == destination [Y_AXIS])) {
       plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate/60, active_extruder);
       current_position[E_AXIS] = current_position[Z_AXIS];
   }
   else {
+     digitalWrite(9, 255); //turn on laser 
+     analogWrite(9, 255); //turn on laser 
     plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate*feedmultiply/60/100.0, active_extruder);
+    digitalWrite(9, 0); //turn off laser, potentially redundant
+    analogWrite(9, 0); //turn off laser, potentially redundant
   }
   
 #endif //else DELTA
