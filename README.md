@@ -1,16 +1,17 @@
-Marlin firmware development branch, we are going to try to cut the GCode Post-Processor out and do the changes on the fly.
+Marlin firmware development branch, removes the need for mUVe 3D GCode Fixing software. Also fizes homing issues, and allows the use of standard Z axis jog buttons in your printer host software.
 
-Task List:
+Task List: - All implemented and working!
 
-1. Interpret GCode lines with an E-code as a line for laser-on, all others laser-off. *actively developing*
+1. Interpret GCode lines with an E-code as a line for laser-on, all others laser-off. *done*
 2. Ignore E axis GCodes. *done*
 3. Create new MCode for peel move, it will have definable peel speed and size. Use Slic3r layer change code to define when to peel. *done*
 4. Tie Z axis GCodes into the E axis so we can still have separate addressable Z motors but move the Z axis with standard commands. *done*
 
 New MCodes
 
-M650 S* - Set your peel move size by replacing the * with any number you choose. This can be inserted as starting GCode in Slic3r
+M650 S* - Set your peel move size by replacing the * with a number, range 1-255. This needs to be set inside of your starting GCode in Slic3r, it can also be changed at any point during printing.
 M651 - Initiate the peel move at the layer size chosen. This needs to be unput as the layer change GCode in Slic3r.
+M652 S* - Set you laser power, range 1-255. This can be set in your starting GCode in Slic3r, or at any point during printing.
 
 
 
