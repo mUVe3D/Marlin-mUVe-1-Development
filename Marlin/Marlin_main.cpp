@@ -169,6 +169,9 @@
 #ifdef SDSUPPORT
 CardReader card;
 #endif
+int flag=0; //used by mUVe 3D laser controls
+int laser=0; //used by mUVe 3D laser controls
+int laser_power=255; //used by mUVe 3D laser controls
 float homing_feedrate[] = HOMING_FEEDRATE;
 bool axis_relative_modes[] = AXIS_RELATIVE_MODES;
 int feedmultiply=100; //100->1 200->2
@@ -951,7 +954,7 @@ static void homeaxis(int axis) {
 #else
     feedrate = homing_feedrate[axis]/2 ;
 #endif
-    plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
+    plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate/60, active_extruder);
     st_synchronize();
 #ifdef DELTA
     // retrace by the amount specified in endstop_adj
@@ -995,8 +998,7 @@ void process_commands()
     case 0: // G0 -> G1
     case 1: // G1
       if(Stopped == false) {
-        get_coordinates(); // For X Y Z E F
-        
+        get_coordinates(); // For X Y Z E F        
         prepare_move();
         //ClearToSend();
         return;
@@ -2460,6 +2462,13 @@ void process_commands()
         st_synchronize();
   }
     break;
+    
+    case 652: // M652 set laser power
+    {
+      st_synchronize();
+      if(code_seen('S')) laser_power = (float) code_value();
+    }
+    break;
 
     case 907: // M907 Set digital trimpot motor current using axis codes.
     {
@@ -2658,7 +2667,7 @@ void get_coordinates()
     next_feedrate = code_value();
     if(next_feedrate > 0.0) feedrate = next_feedrate;
   }
-  
+
   #ifdef FWRETRACT
   if(autoretract_enabled)
   if( !(seen[X_AXIS] || seen[Y_AXIS] || seen[Z_AXIS]) && seen[E_AXIS])
@@ -2837,19 +2846,38 @@ void prepare_move()
   }
 #endif //DUAL_X_CARRIAGE
 
-  digitalWrite(9, 0); //turn off laser before deciding move type
-  analogWrite(9, 0); //turn off laser before deciding move type
+  if((code_seen('E'))) //turn on flag if an E was detected in this line of GCode, turn it off if it was not.
+    {
+     flag=1;   //declared at beginning of file with public variables 
+    }
+  else {
+    flag=0;  //declared at beginning of file with public variables  
+  }
+  
+  if(flag == 1 && laser == 0) //if the flag is detected and the laser is not already on, turn it on and sync
+    {
+     st_synchronize();
+     digitalWrite(9, laser_power); //turn on laser 
+     analogWrite(9, laser_power); //turn on laser
+     laser=1; //declared at beginning of file with public variables
+    }
+  if(flag == 0 && laser == 1) //if the flag is not detected and the laser is already on, turn it off and sync
+  {
+      st_synchronize();
+      digitalWrite(9, 0); //turn off laser
+      analogWrite(9, 0); //turn off laser 
+      laser=0; //declared at beginning of file with public variables
+    }
+      
+
+  //destination[E_AXIS] = 0;
   // Do not use feedmultiply for E or Z only moves
   if( (current_position[X_AXIS] == destination [X_AXIS]) && (current_position[Y_AXIS] == destination [Y_AXIS])) {
       plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate/60, active_extruder);
       current_position[E_AXIS] = current_position[Z_AXIS];
   }
   else {
-     digitalWrite(9, 255); //turn on laser 
-     analogWrite(9, 255); //turn on laser 
     plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate*feedmultiply/60/100.0, active_extruder);
-    digitalWrite(9, 0); //turn off laser, potentially redundant
-    analogWrite(9, 0); //turn off laser, potentially redundant
   }
   
 #endif //else DELTA
