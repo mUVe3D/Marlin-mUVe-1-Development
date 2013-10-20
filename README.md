@@ -10,7 +10,11 @@ Task List: - All implemented and working!
 New MCodes
 
 M650 S* - Set your peel move size by replacing the * with a number, range 1-255. This needs to be set inside of your starting GCode in Slic3r, it can also be changed at any point during printing.
+
+
 M651 - Initiate the peel move at the layer size chosen. This needs to be unput as the layer change GCode in Slic3r.
+
+
 M652 S* - Set you laser power, range 1-255. This can be set in your starting GCode in Slic3r, or at any point during printing.
 
 
