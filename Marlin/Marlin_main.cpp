@@ -169,9 +169,6 @@
 #ifdef SDSUPPORT
 CardReader card;
 #endif
-int flag=0; //used by mUVe 3D laser controls
-int laser=0; //used by mUVe 3D laser controls
-int laser_power=255; //used by mUVe 3D laser controls
 float homing_feedrate[] = HOMING_FEEDRATE;
 bool axis_relative_modes[] = AXIS_RELATIVE_MODES;
 int feedmultiply=100; //100->1 200->2
@@ -229,7 +226,12 @@ float delta[3] = {0.0, 0.0, 0.0};
 //===========================================================================
 const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E'};
 static float destination[NUM_AXIS] = {  0.0, 0.0, 0.0, 0.0};
-static float peel_distance = 0;
+static float peel_distance = 0; //User by mUVe 3D Peel Control
+static float peel_speed = 0; //User by mUVe 3D Peel Control
+static float peel_pause = 0; //User by mUVe 3D Peel Control
+static float laser_power=0; //used by mUVe 3D laser controls
+static float flag=0; //used by mUVe 3D laser controls
+static float laser=0; //used by mUVe 3D laser controls
 static float offset[3] = {0.0, 0.0, 0.0};
 static bool home_all_axis = true;
 static float feedrate = 1500.0, next_feedrate, saved_feedrate;
@@ -2445,32 +2447,49 @@ void process_commands()
     case 650: // M650 set peel distance
     {
       st_synchronize();
-      if(code_seen('S')) peel_distance = (float) code_value();
+      if(code_seen('D')) peel_distance = (float) code_value();
       else {
           peel_distance=2;
         }
-        break;
+ 
+      if(code_seen('S')) peel_speed = (float) code_value();
+      else {
+          peel_speed=2;
+        }
+    
+      if(code_seen('P')) peel_pause = (float) code_value();
+      else {
+          peel_pause=0;
+        }
+      
+      if(code_seen('L')) laser_power = (float) code_value();
+      else {
+          laser_power=255;
+        }
     }
     break;
     
     case 651: // M651 run peel move
     {
       if(peel_distance > 0);
-        plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS] + peel_distance, destination[Z_AXIS], 2, active_extruder);
-        plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS] + peel_distance, destination[Z_AXIS] + peel_distance, 2, active_extruder);
+        plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS] + peel_distance, destination[Z_AXIS], peel_speed, active_extruder);
+        plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS] + peel_distance, destination[Z_AXIS] + peel_distance, peel_speed, active_extruder);
+        st_synchronize();
+      if(peel_pause > 0);
+        st_synchronize();
+        peel_pause += millis();  // keep track of when we started waiting
+        previous_millis_cmd = millis();
+        while(millis()  < peel_pause ){
+        manage_heater();
+        manage_inactivity();
+        lcd_update();
+      }
+    
         plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], 30, active_extruder);
         st_synchronize();
-  }
-    break;
-    
-    case 652: // M652 set laser power without changing laser state
-    {
-      st_synchronize();
-      if(code_seen('S')) laser_power = (float) code_value();
+      break;
     }
-    break;
-    
-    case 653: //Turn off laser now
+    case 652: //Turn off laser now
     {
      digitalWrite(9, 0); //turn off laser 
      analogWrite(9, 0); //turn off laser
