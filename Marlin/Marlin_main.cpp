@@ -1202,7 +1202,7 @@ void process_commands()
           current_position[Z_AXIS]=code_value()+add_homeing[2];
         }
       }
-      plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+      plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[Z_AXIS]);
 #endif // else DELTA
 
       #ifdef ENDSTOPS_ONLY_FOR_HOMING
@@ -2463,13 +2463,21 @@ void process_commands()
   }
     break;
     
-    case 652: // M652 set laser power
+    case 652: // M652 set laser power without changing laser state
     {
       st_synchronize();
       if(code_seen('S')) laser_power = (float) code_value();
     }
     break;
-
+    
+    case 653: //Turn off laser now
+    {
+     digitalWrite(9, 0); //turn off laser 
+     analogWrite(9, 0); //turn off laser
+     laser=0; //declared at beginning of file with public variables
+     st_synchronize();
+    }
+    
     case 907: // M907 Set digital trimpot motor current using axis codes.
     {
       #if defined(DIGIPOTSS_PIN) && DIGIPOTSS_PIN > -1
