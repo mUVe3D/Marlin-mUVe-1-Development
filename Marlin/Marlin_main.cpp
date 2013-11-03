@@ -2487,8 +2487,8 @@ void process_commands()
     
         plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], 30, active_extruder);
         st_synchronize();
-      break;
     }
+    break;
     case 652: //Turn off laser now
     {
      digitalWrite(9, 0); //turn off laser 
