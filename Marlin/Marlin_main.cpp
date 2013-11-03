@@ -1345,11 +1345,11 @@ void process_commands()
         if(code_seen(axis_codes[i])) {
            if(i == E_AXIS) {
              current_position[i] = code_value();
-             plan_set_e_position(current_position[E_AXIS]);
+             plan_set_e_position(current_position[Z_AXIS]);
            }
            else {
              current_position[i] = code_value()+add_homeing[i];
-             plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+             plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[Z_AXIS]);
            }
         }
       }
@@ -2477,18 +2477,20 @@ void process_commands()
         st_synchronize();
       if(peel_pause > 0);
         st_synchronize();
-        peel_pause += millis();  // keep track of when we started waiting
+        codenum = peel_pause;
+        codenum += millis();  // keep track of when we started waiting
         previous_millis_cmd = millis();
-        while(millis()  < peel_pause ){
+        while(millis()  < codenum ){
         manage_heater();
         manage_inactivity();
-        lcd_update();
+        lcd_update();      
       }
     
         plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], 30, active_extruder);
         st_synchronize();
     }
     break;
+    
     case 652: //Turn off laser now
     {
      digitalWrite(9, 0); //turn off laser 
