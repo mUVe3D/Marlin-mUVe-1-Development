@@ -1,21 +1,26 @@
 Marlin firmware development branch, removes the need for mUVe 3D GCode Fixing software. Also fizes homing issues, and allows the use of standard Z axis jog buttons in your printer host software.
 
-Task List: - All implemented and working!
-
-New MCodes
-
-M650 D L P S -  *This needs to be set inside of your starting GCode in Slic3r, it can also be changed at any point during printing.*
+All implemented and working! See MCodes below.
 
 
-D - Set Distance in mm - Set to 0 to remove the peel
-P - Pause in milliseconds - Set to 0 to ignore pause
-L - Laser power, range 0-255 - Default 255
-S - Peel move speed, mm/s - 2mm/s max unless max speed for Z and E axis changed in configuration.h
-
-*Example: M650 D2 P500 L255 S2 - Peel distance 2mm, pause .5 seconds, laser full-power, peel speed 2 mm/s*
+M650 D L P S -  *This must be set inside of your starting GCode in Slic3r, it can also be changed at any point during printing.*
 
 
-M651 - Initiate the peel move with the settings chosen. This needs to be input as the layer change GCode in Slic3r.
+	D - Set Distance in mm - Set to 0 to remove the peel
+
+	P - Pause in milliseconds - Set to 0 to ignore pause
+
+	L - Laser power, range 0-255 - Default 255
+
+	S - Peel move speed, mm/s - 2mm/s max unless max speed for Z and E axis changed in configuration.h
+
+
+Example: M650 D2 P500 L255 S2 - Peel distance 2mm, pause .5 seconds, laser full-power, peel speed 2 mm/s
+
+
+
+M651 - Initiate the peel move with the settings chosen. *This needs to be input as the layer change GCode in Slic3r.*
+
 
 
 M652 - Turn Laser off
