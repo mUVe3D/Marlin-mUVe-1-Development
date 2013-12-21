@@ -2493,8 +2493,8 @@ void process_commands()
     
     case 652: //Turn off laser now
     {
-     digitalWrite(9, 0); //turn off laser 
-     analogWrite(9, 0); //turn off laser
+     digitalWrite(LASER_PIN, 0); //turn off laser 
+     analogWrite(LASER_PIN, 0); //turn off laser
      laser=0; //declared at beginning of file with public variables
      st_synchronize();
     }
@@ -2886,15 +2886,15 @@ void prepare_move()
   if(flag == 1 && laser == 0) //if the flag is detected and the laser is not already on, turn it on and sync
     {
      st_synchronize();
-     digitalWrite(9, laser_power); //turn on laser 
-     analogWrite(9, laser_power); //turn on laser
+     digitalWrite(LASER_PIN, laser_power); //turn on laser 
+     analogWrite(LASER_PIN, laser_power); //turn on laser
      laser=1; //declared at beginning of file with public variables
     }
   if(flag == 0 && laser == 1) //if the flag is not detected and the laser is already on, turn it off and sync
   {
       st_synchronize();
-      digitalWrite(9, 0); //turn off laser
-      analogWrite(9, 0); //turn off laser 
+      digitalWrite(LASER_PIN, 0); //turn off laser
+      analogWrite(LASER_PIN, 0); //turn off laser 
       laser=0; //declared at beginning of file with public variables
     }
       
@@ -2905,8 +2905,11 @@ void prepare_move()
       plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate/60, active_extruder);
       current_position[E_AXIS] = current_position[Z_AXIS];
   }
-  else {
+  else if (current_position[E_AXIS] == destination[E_AXIS]) {
     plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate*feedmultiply/60/100.0, active_extruder);
+  }
+  else {
+	plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate*feedmultiply/60/100.0, active_extruder, LASER_ON);
   }
   
 #endif //else DELTA
