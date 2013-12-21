@@ -69,6 +69,10 @@ typedef struct {
   unsigned long e_to_p_pressure;
   #endif
   volatile char busy;
+  #ifdef MUVE
+  bool laser;
+  float laser_power;
+  #endif
 } block_t;
 
 #ifdef ENABLE_AUTO_BED_LEVELING
