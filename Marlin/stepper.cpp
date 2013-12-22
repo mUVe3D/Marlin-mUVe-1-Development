@@ -51,6 +51,11 @@ static long counter_x,       // Counter variables for the bresenham line tracer
             counter_y,
             counter_z,
             counter_e;
+            
+#ifdef MUVE
+			counter_l;
+#endif
+
 volatile static unsigned long step_events_completed; // The number of step events executed in the current block
 #ifdef ADVANCE
   static long advance_rate, advance, final_advance = 0;
@@ -323,6 +328,10 @@ ISR(TIMER1_COMPA_vect)
       counter_z = counter_x;
       counter_e = counter_x;
       step_events_completed = 0;
+      
+      #ifdef MUVE
+      counter_l = counter_x;
+      #endif
 
       #ifdef Z_LATE_ENABLE
         if(current_block->steps_z > 0) {
@@ -345,14 +354,6 @@ ISR(TIMER1_COMPA_vect)
     // Set directions TO DO This should be done once during init of trapezoid. Endstops -> interrupt
     out_bits = current_block->direction_bits;
     
-    #ifdef MUVE
-    if (current_block->laser == LASER_ON) {
-		analogWrite(LASER_PIN, current_block->laser_power);
-	} else {
-		analogWrite(LASER_PIN, 0);
-	}
-	#endif // MUVE
-
     // Set the direction bits (X_AXIS=A_AXIS and Y_AXIS=B_AXIS for COREXY)
     if((out_bits & (1<<X_AXIS))!=0){
       #ifdef DUAL_X_CARRIAGE
@@ -620,6 +621,19 @@ ISR(TIMER1_COMPA_vect)
           WRITE_E_STEP(INVERT_E_STEP_PIN);
         }
       #endif //!ADVANCE
+ 
+     #ifdef MUVE  
+        counter_l += current_block->steps_l;
+        if (counter_l > 0) {
+			if (current_block->steps_l % counter_l > 0) {
+				analogWrite(LASER_PIN, current_block->laser_power);
+			} else {
+				analogWrite(LASER_PIN, 0);
+			}
+          counter_l -= current_block->step_event_count;
+        }
+     #endif // MUVE
+        
       step_events_completed += 1;
       if(step_events_completed >= current_block->step_event_count) break;
     }

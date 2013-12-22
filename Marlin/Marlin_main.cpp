@@ -230,6 +230,7 @@ static float peel_distance = 0; //User by mUVe 3D Peel Control
 static float peel_speed = 0; //Used by mUVe 3D Peel Control
 static float peel_pause = 0; //Used by mUVe 3D Peel Control
 static float laser_power = 0; //Used by mUVe 3D laser control
+static float laser_ppm = 10; //Used by mUVe 3D laser control
 static float offset[3] = {0.0, 0.0, 0.0};
 static bool home_all_axis = true;
 static float feedrate = 1500.0, next_feedrate, saved_feedrate;
@@ -2464,6 +2465,10 @@ void process_commands()
       else {
           laser_power=255;
         }
+      if(code_seen('Q')) laser_ppm = (float) code_value();
+      else {
+		  laser_ppm=10;
+		}
     }
     break;
     
@@ -2882,7 +2887,7 @@ void prepare_move()
     plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate*feedmultiply/60/100.0, active_extruder);
   }
   else {
-	plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate*feedmultiply/60/100.0, active_extruder, LASER_ON, laser_power);
+	plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate*feedmultiply/60/100.0, active_extruder, LASER_ON, laser_power, laser_ppm);
   }
   
 #endif //else DELTA

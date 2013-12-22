@@ -595,7 +595,9 @@ block->steps_y = labs((target[X_AXIS]-position[X_AXIS]) - (target[Y_AXIS]-positi
   block->steps_e = labs(target[E_AXIS]-position[E_AXIS]);
   block->steps_e *= extrudemultiply;
   block->steps_e /= 100;
+  #ifndef MUVE
   block->step_event_count = max(block->steps_x, max(block->steps_y, max(block->steps_z, block->steps_e)));
+  #endif //!MUVE
 
   // Bail if this is a zero-length block
   if (block->step_event_count <= dropsegments)
@@ -610,8 +612,14 @@ block->steps_y = labs((target[X_AXIS]-position[X_AXIS]) - (target[Y_AXIS]-positi
   #endif
   
   #ifdef MUVE
-  block->laser = laser;
   block->laser_power = laser_power;
+  block->laser_ppm = laser_ppm;
+  if (laser = LASER_ON) {
+  block->steps_l = abs(sqrt(pow((target[X_AXIS]-position[X_AXIS])/axis_steps_per_unit[X_AXIS], 2)+pow((target[Y_AXIS]-position[Y_AXIS])/axis_steps_per_unit[Y_AXIS], 2))*laser_ppm*2); // One event for LASER_ON, one for LASER_OFF
+  } else {
+  block->steps_l = 0;
+  }
+  block->step_event_count = max(block->steps_x, max(block->steps_y, max(block->steps_z, max(block->steps_e, block->steps_l))));
   #endif
 
   // Compute direction bits for this block 
