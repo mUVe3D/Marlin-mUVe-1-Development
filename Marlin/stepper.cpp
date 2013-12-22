@@ -53,7 +53,7 @@ static long counter_x,       // Counter variables for the bresenham line tracer
             counter_e;
             
 #ifdef MUVE
-			counter_l;
+static long counter_l;
 #endif
 
 volatile static unsigned long step_events_completed; // The number of step events executed in the current block
