@@ -608,7 +608,7 @@ block->steps_y = labs((target[X_AXIS]-position[X_AXIS]) - (target[Y_AXIS]-positi
   #ifdef MUVE
   block->laser_power = laser_power;
   block->laser_pulse = laser_pulse;
-  if (laser = LASER_ON) {
+  if (laser == LASER_ON) {
   block->steps_l = labs(sqrt(pow((target[X_AXIS]-position[X_AXIS])/axis_steps_per_unit[X_AXIS], 2)+pow((target[Y_AXIS]-position[Y_AXIS])/axis_steps_per_unit[Y_AXIS], 2))*laser_ppm); // One event for LASER_ON, one for LASER_OFF
   } else {
   block->steps_l = 0;
