@@ -625,7 +625,7 @@ ISR(TIMER1_COMPA_vect)
      #ifdef MUVE  
         counter_l += current_block->steps_l;
         if (counter_l > 0) {
-			if (current_block->steps_l % counter_l > 0) {
+			if (counter_l % 2 > 0) {
 				analogWrite(LASER_PIN, current_block->laser_power);
 			} else {
 				analogWrite(LASER_PIN, 0);
