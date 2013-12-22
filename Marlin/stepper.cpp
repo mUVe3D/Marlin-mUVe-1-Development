@@ -622,13 +622,15 @@ ISR(TIMER1_COMPA_vect)
         }
       #endif //!ADVANCE
  
-     #ifdef MUVE  
-        counter_l += current_block->steps_l;
-        if (counter_l > 0) {
-		  analogWrite(LASER_PIN, current_block->laser_power);
-		  delay(current_block->laser_pulse);
-		  analogWrite(LASER_PIN, 0);
-          counter_l -= current_block->step_event_count;
+     #ifdef MUVE
+		if (current_block->laser = LASER_ON){
+			counter_l += current_block->steps_l;
+			if (counter_l > 0) {
+			analogWrite(LASER_PIN, current_block->laser_power);
+			step_wait();
+			analogWrite(LASER_PIN, 0);
+			counter_l -= current_block->step_event_count;
+			}
         }
      #endif // MUVE
         
