@@ -632,7 +632,6 @@ ISR(TIMER1_COMPA_vect)
 			}
 		  counter_l -= current_block->step_event_count;
 		  }
-        }
      #endif // MUVE
         
       step_events_completed += 1;
