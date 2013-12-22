@@ -72,7 +72,7 @@ typedef struct {
   #ifdef MUVE
   bool laser;
   float laser_power;
-  int8_t laser_pulse;
+  long laser_pulse;
   long steps_l;
   #endif
 } block_t;
