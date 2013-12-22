@@ -599,12 +599,6 @@ block->steps_y = labs((target[X_AXIS]-position[X_AXIS]) - (target[Y_AXIS]-positi
   block->step_event_count = max(block->steps_x, max(block->steps_y, max(block->steps_z, block->steps_e)));
   #endif //!MUVE
 
-  // Bail if this is a zero-length block
-  if (block->step_event_count <= dropsegments)
-  { 
-    return; 
-  }
-
   block->fan_speed = fanSpeed;
   #ifdef BARICUDA
   block->valve_pressure = ValvePressure;
@@ -620,6 +614,12 @@ block->steps_y = labs((target[X_AXIS]-position[X_AXIS]) - (target[Y_AXIS]-positi
   }
   block->step_event_count = max(block->steps_x, max(block->steps_y, max(block->steps_z, max(block->steps_e, block->steps_l))));
   #endif
+  
+  // Bail if this is a zero-length block
+  if (block->step_event_count <= dropsegments)
+  { 
+    return; 
+  }
 
   // Compute direction bits for this block 
   block->direction_bits = 0;
