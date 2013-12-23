@@ -628,6 +628,7 @@ ISR(TIMER1_COMPA_vect)
 			if (current_block->laser == LASER_ON){
 		  	  analogWrite(LASER_PIN, current_block->laser_power);
 		  	  
+		  	  interrupts();
 			  uint16_t micros_now = (uint16_t)micros();
 			  uint32_t millis_delay = current_block->laser_pulse;
 			  while (millis_delay > 0) {
@@ -636,6 +637,7 @@ ISR(TIMER1_COMPA_vect)
 				micros_now += 1000;
 				}
 			  }
+			  noInterrupts();
 		  	  
 			  analogWrite(LASER_PIN, 0);
 			}
