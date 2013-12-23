@@ -72,7 +72,7 @@ typedef struct {
   #ifdef MUVE
   bool laser;
   float laser_power;
-  long laser_pulse;
+  uint32_t laser_pulse;
   long steps_l;
   #endif
 } block_t;
@@ -94,7 +94,7 @@ void plan_buffer_line(float x, float y, float z, const float &e, float feed_rate
 // Get the position applying the bed level matrix if enabled
 vector_3 plan_get_position();
 #else
-void plan_buffer_line(const float &x, const float &y, const float &z, const float &e, float feed_rate, const uint8_t &extruder, bool laser = 0, float laser_power = 255, float laser_ppm = 10, long laser_pulse = 16);
+void plan_buffer_line(const float &x, const float &y, const float &z, const float &e, float feed_rate, const uint8_t &extruder, bool laser = 0, float laser_power = 255, float laser_ppm = 10, uint32_t laser_pulse = 3);
 #endif // ENABLE_AUTO_BED_LEVELING
 
 // Set position. Used for G92 instructions.

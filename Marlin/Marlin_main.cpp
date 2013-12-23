@@ -231,7 +231,7 @@ static float peel_speed = 0; //Used by mUVe 3D Peel Control
 static float peel_pause = 0; //Used by mUVe 3D Peel Control
 static float laser_power = 0; //Used by mUVe 3D laser control
 static float laser_ppm = 10; //Used by mUVe 3D laser control - laser pulses per millimeter
-static long laser_pulse = 16; //Used by mUVe 3D laser control - laser pulse width in cycles
+static uint32_t laser_pulse = 3; //Used by mUVe 3D laser control - laser pulse width in milliseconds
 static float offset[3] = {0.0, 0.0, 0.0};
 static bool home_all_axis = true;
 static float feedrate = 1500.0, next_feedrate, saved_feedrate;
@@ -2470,9 +2470,9 @@ void process_commands()
       else {
 		  laser_ppm=10;
 		}
-	  if(code_seen('C')) laser_pulse = (long) code_value();
+	  if(code_seen('C')) laser_pulse = (uint32_t) code_value();
 	  else {
-		  laser_pulse=16;
+		  laser_pulse=3;
 		}
     }
     break;
