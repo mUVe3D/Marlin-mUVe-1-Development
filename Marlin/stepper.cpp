@@ -634,10 +634,10 @@ ISR(TIMER1_COMPA_vect)
 				if (((uint16_t)micros() - micros_now) >= 1000) {
 				millis_delay--;
 				micros_now += 1000;
+				}
 				#ifndef AT90USB
 				MSerial.checkRx(); // Check for serial chars.
 				#endif
-				}
 			  }
 		  	  
 			  analogWrite(LASER_PIN, 0);
