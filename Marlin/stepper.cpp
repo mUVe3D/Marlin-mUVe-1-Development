@@ -628,16 +628,17 @@ ISR(TIMER1_COMPA_vect)
 			if (current_block->laser == LASER_ON){
 		  	  analogWrite(LASER_PIN, current_block->laser_power);
 		  	  
-		  	  interrupts();
 			  uint16_t micros_now = (uint16_t)micros();
 			  uint32_t millis_delay = current_block->laser_pulse;
 			  while (millis_delay > 0) {
 				if (((uint16_t)micros() - micros_now) >= 1000) {
 				millis_delay--;
 				micros_now += 1000;
+				#ifndef AT90USB
+				MSerial.checkRx(); // Check for serial chars.
+				#endif
 				}
 			  }
-			  noInterrupts();
 		  	  
 			  analogWrite(LASER_PIN, 0);
 			}
