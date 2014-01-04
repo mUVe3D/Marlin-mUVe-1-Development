@@ -228,6 +228,9 @@
 // Uncomment the following line to enable CoreXY kinematics
 // #define COREXY
 
+// Uncomment the following line for mUVe 3D printers
+#define MUVE
+
 // coarse Endstop Settings
 #define ENDSTOPPULLUPS // Comment this out (using // at the start of the line) to disable the endstop pullup resistors
 
