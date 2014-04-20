@@ -76,6 +76,7 @@ const char echomagic[] PROGMEM ="echo:";
 
 void serial_echopair_P(const char *s_P, float v);
 void serial_echopair_P(const char *s_P, double v);
+void serial_echopair_P(const char *s_P, long v);
 void serial_echopair_P(const char *s_P, unsigned long v);
 
 
@@ -101,8 +102,8 @@ void manage_inactivity();
   #define  enable_x() do { WRITE(X_ENABLE_PIN, X_ENABLE_ON); WRITE(X2_ENABLE_PIN, X_ENABLE_ON); } while (0)
   #define disable_x() do { WRITE(X_ENABLE_PIN,!X_ENABLE_ON); WRITE(X2_ENABLE_PIN,!X_ENABLE_ON); } while (0)
 #elif defined(X_ENABLE_PIN) && X_ENABLE_PIN > -1
-  #define  enable_x() WRITE(X_ENABLE_PIN, X_ENABLE_ON)
-  #define disable_x() WRITE(X_ENABLE_PIN,!X_ENABLE_ON)
+  	  #define  enable_x() WRITE(X_ENABLE_PIN, X_ENABLE_ON)
+      #define disable_x() WRITE(X_ENABLE_PIN,!X_ENABLE_ON)
 #else
   #define enable_x() ;
   #define disable_x() ;
@@ -190,6 +191,7 @@ extern bool axis_relative_modes[];
 extern int feedmultiply;
 extern int extrudemultiply; // Sets extrude multiply factor (in percent)
 extern float current_position[NUM_AXIS] ;
+extern bool has_axis_homed[NUM_AXIS] ;
 extern float add_homeing[3];
 #ifdef DELTA
 extern float endstop_adj[3];
@@ -219,9 +221,4 @@ extern unsigned long stoptime;
 // Handling multiple extruders pins
 extern uint8_t active_extruder;
 
-#endif
-
-#ifdef MUVE
-  #define LASER_ON 1
-  #define LASER_OFF 0
 #endif
