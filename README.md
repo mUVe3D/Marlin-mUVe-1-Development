@@ -1,3 +1,32 @@
+Marlin firmware development branch, removes the need for mUVe 3D GCode Fixing software. Also fizes homing issues, and allows the use of standard Z axis jog buttons in your printer host software.
+
+All implemented and working! See MCodes below.
+
+Installation Instructions: http://www.muve3d.net/press/supportsources/muve-1-software/
+
+M6 – Turn the laser on to full-power for 30 seconds
+
+M7 – Turn the laser off
+
+M649 – S(Laser Power) L(Pulse Time In Milliseconds) P(Pulses Per mm)
+
+    -The S value of M649 needs to be between 0 and 100, this will directly impact the PWM value and therefore the laser power via the D9 output
+
+    -The L value is laser pulse on time in milliseconds. Values of 100-400 should be a good place to start. Long pulse times will blend into the next pulse, so be cautious you don’t remove pulsing inadvertently by using too long of a pulse time
+
+    -The P value is the number of pulses the firmware should put into each millimeter. If you are running at .1mm laser point size then 10 is the proper value to use. If you have a .2mm laser size then drop to 5 pulses per mm.
+
+M650 – S(Speed) D(Distance) P(Pause)
+
+    -The S value is the speed in millimeters per second of how quickly to perform the peel move
+
+    -The D value is the distance in millimeters on how far to move each size of the Z axis vertically during the peel
+
+    -The P value is the time in milliseconds for how long to pause when at the top of the peel. This is mostly used for thick resins that need a moment to flow back into the area the part was just peeled fromM65
+
+M651 – Run Peel Move
+
+
 ==========================
 Marlin 3D Printer Firmware
 ==========================
