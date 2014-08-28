@@ -1,6 +1,4 @@
-Marlin firmware development branch, removes the need for mUVe 3D GCode Fixing software. Also fizes homing issues, and allows the use of standard Z axis jog buttons in your printer host software.
-
-All implemented and working! See MCodes below.
+See Custom MCodes below.
 
 Installation Instructions: http://www.muve3d.net/press/supportsources/muve-1-software/
 
