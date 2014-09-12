@@ -1,8 +1,12 @@
-See Custom MCodes below.
+This firmware is stable but needs a reset after lifting the Z axis, before homing again. It seems the motor disable function is causing a problem. We're still investigating.
+
+TTL Laser control is working and completely configurable. Details below.
 
 Pre-requisite, Install this first - https://bintray.com/olikraus/u8glib/Arduino
 
 Installation Instructions: http://www.muve3d.net/press/supportsources/muve-1-software/
+
+Custom MCodes:
 
 M6 – Turn the laser on to full-power for 30 seconds
 
@@ -20,12 +24,12 @@ M650 – S(Speed) D(Distance) P(Pause)
 
     -The S value is the speed in millimeters per second of how quickly to perform the peel move
 
-    -The D value is the distance in millimeters on how far to move each size of the Z axis vertically during the peel
+    -The D value is the distance in millimeters on how far to move each size of the Z axis vertically during the peel. Set to 0 distance to ignore peel.
 
-    -The P value is the time in milliseconds for how long to pause when at the top of the peel. This is mostly used for thick resins that need a moment to flow back into the area the part was just peeled fromM65
+
+    -The P value is the time in milliseconds for how long to pause when at the top of the peel. This is mostly used for thick resins that need a moment to flow back into the area the part was just peeled from
 
 M651 – Run Peel Move
-
 
 ==========================
 Marlin 3D Printer Firmware
