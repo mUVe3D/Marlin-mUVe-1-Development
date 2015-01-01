@@ -32,13 +32,13 @@
 #include "ultralcd.h"
 #include "planner.h"
 #include "stepper.h"
+#include "temperature.h"
 #include "motion_control.h"
 #include "cardreader.h"
 #include "watchdog.h"
 #include "ConfigurationStore.h"
 #include "language.h"
 #include "pins_arduino.h"
-#include "temperature.h"
 
 #ifdef LASER_RASTER
 #include "Base64.h"
@@ -211,7 +211,7 @@ int EtoPPressure=0;
 #endif
 
 #ifdef ULTIPANEL
-	bool powersupply = true;
+  bool powersupply = true;
 #endif
 
 #ifdef DELTA
@@ -450,7 +450,7 @@ void setup()
   servo_init();
 
   lcd_init();
-  _delay_ms(1000);	// wait 1sec to display the splash screen
+  _delay_ms(1000);  // wait 1sec to display the splash screen
 
   #if defined(CONTROLLERFAN_PIN) && CONTROLLERFAN_PIN > -1
     SET_OUTPUT(CONTROLLERFAN_PIN); //Set pin used for driver cooling fan
@@ -826,11 +826,11 @@ static void homeaxis(int axis) {
       st_synchronize();
 
       destination[axis] = 2*home_retract_mm(axis) * axis_home_dir;
-	  #ifdef DELTA
-		feedrate = homing_feedrate[axis]/10;
-	  #else
-		feedrate = homing_feedrate[axis]/2 ;
-	  #endif
+    #ifdef DELTA
+    feedrate = homing_feedrate[axis]/10;
+    #else
+    feedrate = homing_feedrate[axis]/2 ;
+    #endif
 
       plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
       #endif // MUVE_Z_PEEL
@@ -883,10 +883,10 @@ void process_commands()
 
         #ifdef LASER_FIRE_G1
           if (code_seen('S') && !IsStopped()) {
-    	    laser.intensity = (float) code_value();
-	      } else {
-		      laser.intensity = 100.0;
-	      }
+            laser.intensity = (float) code_value();
+          } else {
+            laser.intensity = 100.0;
+          }
           if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
           if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) code_value(); laser.mode = PULSED; }
 
@@ -936,33 +936,33 @@ void process_commands()
     #ifdef LASER_RASTER
     case 7: //G7 Execute raster line
       if (code_seen('L')) laser.raster_raw_length = int(code_value());
-	  if (code_seen('N')) {
-		laser.raster_direction = (bool)code_value();
-		destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
-	  }
+    if (code_seen('N')) {
+    laser.raster_direction = (bool)code_value();
+    destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+    }
       if (code_seen('D')) laser.raster_num_pixels = base64_decode(laser.raster_data, &cmdbuffer[bufindr][strchr_pointer - cmdbuffer[bufindr] + 1], laser.raster_raw_length);
-	  if (!laser.raster_direction) {
-	    destination[X_AXIS] = current_position[X_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
+    if (!laser.raster_direction) {
+      destination[X_AXIS] = current_position[X_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
       #if LASER_DIAGNOSTICS
           SERIAL_ECHO_START;
           SERIAL_ECHOLN("Negative Raster Line");
       #endif
-	  } else {
-	    destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
+    } else {
+      destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
       #if LASER_DIAGNOSTICS
           SERIAL_ECHO_START;
           SERIAL_ECHOLN("Positive Raster Line");
       #endif
-	  }
-	  laser.ppm = 1 / laser.raster_mm_per_pulse;
-	  laser.duration = labs(1 / (feedrate * laser.ppm) * 1000000);
-	  laser.mode = RASTER;
-	  laser.status = LASER_ON;
-	  laser.fired = RASTER;
-	  prepare_move();
+    }
+    laser.ppm = 1 / laser.raster_mm_per_pulse;
+    laser.duration = labs(1 / (feedrate * laser.ppm) * 1000000);
+    laser.mode = RASTER;
+    laser.status = LASER_ON;
+    laser.fired = RASTER;
+    prepare_move();
 
       break;
-	#endif // LASER_RASTER
+  #endif // LASER_RASTER
 
     #ifdef FWRETRACT
     case 10: // G10 retract
@@ -1213,10 +1213,10 @@ void process_commands()
 #ifdef LASER_FIRE_SPINDLE
     case 3:  //M3 - fire laser
       if (code_seen('S') && !IsStopped()) {
-    	laser.intensity = (float) code_value();
-	  } else {
-		laser.intensity = 100.0;
-	  }
+        laser.intensity = (float) code_value();
+      } else {
+        laser.intensity = 100.0;
+      }
       if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
       if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) code_value(); laser.mode = PULSED; }
 
@@ -1225,7 +1225,7 @@ void process_commands()
 
       break;
     case 5:  //M5 stop firing laser
-	  laser.status = LASER_OFF;
+    laser.status = LASER_OFF;
       break;
 #endif // LASER_FIRE_SPINDLE
 #ifdef MUVE_Z_PEEL
@@ -1610,10 +1610,10 @@ void process_commands()
           LCD_MESSAGEPGM(WELCOME_MSG);
           lcd_update();
         #endif
-		#ifdef LASER_PERIPHERALS
-		  laser_peripherals_on();
-		  laser_wait_for_peripherals();
-		#endif // LASER_PERIPHERALS
+    #ifdef LASER_PERIPHERALS
+      laser_peripherals_on();
+      laser_wait_for_peripherals();
+    #endif // LASER_PERIPHERALS
         break;
       #endif
 
@@ -1625,9 +1625,9 @@ void process_commands()
         disable_e2();
         finishAndDisableSteppers();
         fanSpeed = 0;
-		#ifdef LASER_PERIPHERALS
-        	laser_peripherals_off();
-	    #endif // LASER_PERIPHERALS
+    #ifdef LASER_PERIPHERALS
+          laser_peripherals_off();
+      #endif // LASER_PERIPHERALS
         delay(1000); // Wait a little before to switch off
       #if defined(SUICIDE_PIN) && SUICIDE_PIN > -1
         st_synchronize();
@@ -1641,7 +1641,7 @@ void process_commands()
         LCD_MESSAGEPGM(MACHINE_NAME" "MSG_OFF".");
         lcd_update();
       #endif
-	  break;
+    break;
 
     case 82:
       axis_relative_modes[3] = false;
@@ -1669,18 +1669,18 @@ void process_commands()
         {
           st_synchronize();
           if(code_seen('X')) {
-        	  has_axis_homed[X_AXIS] = false;
-        	  disable_x();
+            has_axis_homed[X_AXIS] = false;
+            disable_x();
           }
           if(code_seen('Y')) {
-        	  has_axis_homed[Y_AXIS] = false;
-        	  disable_y();
+            has_axis_homed[Y_AXIS] = false;
+            disable_y();
           }
           if(code_seen('Z')) {
-			  #ifndef Z_AXIS_IS_LEADSCREW
-        	  	  has_axis_homed[Z_AXIS] = false;
-			#endif
-        	  disable_z();
+        #ifndef Z_AXIS_IS_LEADSCREW
+                has_axis_homed[Z_AXIS] = false;
+      #endif
+            disable_z();
           }
           #if ((E0_ENABLE_PIN != X_ENABLE_PIN) && (E1_ENABLE_PIN != Y_ENABLE_PIN)) // Only enable on boards that have seperate ENABLE_PINS
             if(code_seen('E')) {
@@ -2056,8 +2056,8 @@ void process_commands()
 #ifdef DOGLCD
     case 250: // M250  Set LCD contrast value: C<value> (value 0..63)
      {
-	  if (code_seen('C')) {
-	   lcd_setcontrast( ((int)code_value())&63 );
+    if (code_seen('C')) {
+     lcd_setcontrast( ((int)code_value())&63 );
           }
           SERIAL_PROTOCOLPGM("lcd contrast value: ");
           SERIAL_PROTOCOL(lcd_contrast);
@@ -2068,12 +2068,12 @@ void process_commands()
     #ifdef PREVENT_DANGEROUS_EXTRUDE
     case 302: // allow cold extrudes, or set the minimum extrude temperature
     {
-	  float temp = .0;
-	  if (code_seen('S')) temp=code_value();
+    float temp = .0;
+    if (code_seen('S')) temp=code_value();
       set_extrude_min_temp(temp);
     }
     break;
-	#endif
+  #endif
     case 303: // M303 PID autotune
     {
       float temp = 150.0;
@@ -2291,32 +2291,32 @@ void process_commands()
     break;
     #endif //DUAL_X_CARRIAGE
 
-	#ifdef LASER
-	case 649: // M649 set laser options
-	{
-	  if (code_seen('S') && !IsStopped()) laser.intensity = (float) code_value();
-      if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
-      if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) labs(code_value()); laser.mode = PULSED; }
-	}
-	break;
-	#endif // LASER
+  #ifdef LASER
+  case 649: // M649 set laser options
+  {
+    if (code_seen('S') && !IsStopped()) laser.intensity = (float) code_value();
+    if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
+    if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) labs(code_value()); laser.mode = PULSED; }
+  }
+  break;
+  #endif // LASER
 
     #ifdef MUVE_Z_PEEL
     case 650: // M650 set peel distance
     {
       st_synchronize();
       if(code_seen('D')){
-		laser.peel_distance = (float) code_value();
+    laser.peel_distance = (float) code_value();
       } else {
         laser.peel_distance=2.0;
       }
       if(code_seen('S')){
-		laser.peel_speed = (float) code_value();
+    laser.peel_speed = (float) code_value();
       } else {
         laser.peel_speed=2.0;
       }
       if(code_seen('P')){
-		laser.peel_pause = (float) code_value();
+    laser.peel_pause = (float) code_value();
       } else {
         laser.peel_pause=0.0;
       }
@@ -2722,8 +2722,8 @@ void prepare_move()
 
   #ifdef LASER_FIRE_E
   if (current_position[E_AXIS] != destination[E_AXIS] && ((current_position[X_AXIS] != destination [X_AXIS]) || (current_position[Y_AXIS] != destination [Y_AXIS]))){
-	laser.status = LASER_ON;
-	laser.fired = LASER_FIRE_E;
+  laser.status = LASER_ON;
+  laser.fired = LASER_FIRE_E;
   }
   if (current_position[E_AXIS] == destination[E_AXIS] && laser.fired == LASER_FIRE_E){
     laser.status = LASER_OFF;
@@ -2740,11 +2740,11 @@ void prepare_move()
       #endif // MUVE_Z_PEEL
   }
   else {
-	#ifdef MUVE_Z_PEEL
-	  plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate*feedmultiply/60/100.0, active_extruder);
-	#else
+  #ifdef MUVE_Z_PEEL
+    plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], feedrate*feedmultiply/60/100.0, active_extruder);
+  #else
       plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate*feedmultiply/60/100.0, active_extruder);
-	#endif // MUVE_Z_PEEL
+  #endif // MUVE_Z_PEEL
   }
 #endif //else DELTA
   for(int8_t i=0; i < NUM_AXIS; i++) {
@@ -2836,14 +2836,14 @@ void manage_inactivity()
         disable_e2();
         #ifdef LASER
           if (laser.time / 60000 > 0) {
-		    laser.lifetime += laser.time / 60000; // convert to minutes
-		    laser.time = 0;
-		    Config_StoreSettings();
-		  }
-		#endif // LASER
-		#ifdef LASER_PERIPHERALS
+        laser.lifetime += laser.time / 60000; // convert to minutes
+        laser.time = 0;
+        Config_StoreSettings();
+      }
+    #endif // LASER
+    #ifdef LASER_PERIPHERALS
             laser_peripherals_off();
-		#endif
+    #endif
       }
     }
   }

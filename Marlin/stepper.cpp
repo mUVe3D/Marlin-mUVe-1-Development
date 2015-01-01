@@ -352,9 +352,9 @@ ISR(TIMER1_COMPA_vect)
 
       #ifdef LASER_RASTER
         if (current_block->laser_mode == RASTER) {
-			    counter_raster = 0;
-		    }
-	    #endif // LASER_RASTER
+          counter_raster = 0;
+        }
+      #endif // LASER_RASTER
 
 //      #ifdef ADVANCE
 //      e_steps[current_block->active_extruder] = 0;
@@ -369,15 +369,15 @@ ISR(TIMER1_COMPA_vect)
     // Set directions TO DO This should be done once during init of trapezoid. Endstops -> interrupt
     out_bits = current_block->direction_bits;
 
-	// Continuous firing of the laser during a move happens here, PPM and raster happen further down
-	#ifdef LASER
+  // Continuous firing of the laser during a move happens here, PPM and raster happen further down
+  #ifdef LASER
   #if LASER_CONTROL == 1
-	if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON) {
-	  laser_fire(current_block->laser_intensity);
+  if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON) {
+    laser_fire(current_block->laser_intensity);
     }
   if (current_block->laser_duration > 0 && (current_block->laser_duration + laser.last_firing < micros())) {
-	  laser_extinguish();
-	}
+    laser_extinguish();
+  }
   #endif
   if (current_block->laser_status == LASER_OFF) {
     laser_extinguish();
@@ -655,33 +655,33 @@ ISR(TIMER1_COMPA_vect)
       // steps_l = step count between laser firings
       //
       #ifdef LASER
-		  counter_l += current_block->steps_l;
-		  if (counter_l > 0) {
-      #if LASER_CONTROL == 3
-			if (current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
-		  	laser_fire(current_block->laser_intensity);
-		  	#if LASER_DIAGNOSTICS
-		  	  SERIAL_ECHOPAIR("X: ", counter_x);
-		  	  SERIAL_ECHOPAIR("Y: ", counter_y);
-		  	  SERIAL_ECHOPAIR("L: ", counter_l);
-        #endif
-			}
-      #endif
-			#ifdef LASER_RASTER
-			if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
-			  laser_fire_raster(current_block->laser_raster_data[counter_raster]/255.0*100.0);
+      counter_l += current_block->steps_l;
+      if (counter_l > 0) {
+      #if LASER_CONTROL = 2 || LASER_CONTROL == 3
+      if (current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
+        laser_fire(current_block->laser_intensity);
         #if LASER_DIAGNOSTICS
-			    SERIAL_ECHO("Pixel: ");
-			    SERIAL_ECHOLN(itostr3(current_block->laser_raster_data[counter_raster]));
+          SERIAL_ECHOPAIR("X: ", counter_x);
+          SERIAL_ECHOPAIR("Y: ", counter_y);
+          SERIAL_ECHOPAIR("L: ", counter_l);
         #endif
-		      counter_raster++;
-			}
-			#endif // LASER_RASTER
-		  counter_l -= current_block->step_event_count;
-		  }
-		  if (current_block->laser_duration > 0 && (micros() - laser.last_firing) >= current_block->laser_duration) {
-		    laser_extinguish();
-		  }
+      }
+      #endif
+      #ifdef LASER_RASTER
+      if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
+        laser_fire_raster(current_block->laser_raster_data[counter_raster]/255.0*100.0);
+        #if LASER_DIAGNOSTICS
+          SERIAL_ECHO("Pixel: ");
+          SERIAL_ECHOLN(itostr3(current_block->laser_raster_data[counter_raster]));
+        #endif
+          counter_raster++;
+      }
+      #endif // LASER_RASTER
+      counter_l -= current_block->step_event_count;
+      }
+      if (current_block->laser_duration > 0 && (micros() - laser.last_firing) >= current_block->laser_duration) {
+        laser_extinguish();
+      }
       #endif // LASER
 
       step_events_completed += 1;
