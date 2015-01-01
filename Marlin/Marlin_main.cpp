@@ -32,13 +32,13 @@
 #include "ultralcd.h"
 #include "planner.h"
 #include "stepper.h"
-#include "temperature.h"
 #include "motion_control.h"
 #include "cardreader.h"
 #include "watchdog.h"
 #include "ConfigurationStore.h"
 #include "language.h"
 #include "pins_arduino.h"
+#include "temperature.h"
 
 #ifdef LASER_RASTER
 #include "Base64.h"
@@ -440,7 +440,9 @@ void setup()
   // loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
   Config_RetrieveSettings();
 
+  #ifndef LASER
   tp_init();    // Initialize temperature loop
+  #endif
   plan_init();  // Initialize planner;
   watchdog_init();
   st_init();    // Initialize stepper, this enables interrupts!
@@ -501,9 +503,13 @@ void loop()
     bufindr = (bufindr + 1)%BUFSIZE;
   }
   //check heater every n milliseconds
+  #ifndef LASER
   manage_heater();
+  #endif
   manage_inactivity();
+  #ifdef ENDSTOPS_ONLY_FOR_HOMING
   checkHitEndstops();
+  #endif
   lcd_update();
 }
 
@@ -879,11 +885,10 @@ void process_commands()
           if (code_seen('S') && !IsStopped()) {
     	    laser.intensity = (float) code_value();
 	      } else {
-		    laser.intensity = 100.0;
+		      laser.intensity = 100.0;
 	      }
           if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
-          if (code_seen('P') && !IsStopped()) { laser.ppm = (float) code_value(); laser.mode = PULSED; }
-          if (code_seen('D') && !IsStopped()) laser.diagnostics = (bool) code_value();
+          if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) code_value(); laser.mode = PULSED; }
 
           laser.status = LASER_ON;
           laser.fired = LASER_FIRE_G1;
@@ -921,7 +926,9 @@ void process_commands()
       codenum += millis();  // keep track of when we started waiting
       previous_millis_cmd = millis();
       while(millis()  < codenum ){
+        #ifndef LASER
         manage_heater();
+        #endif
         manage_inactivity();
         lcd_update();
       }
@@ -936,16 +943,16 @@ void process_commands()
       if (code_seen('D')) laser.raster_num_pixels = base64_decode(laser.raster_data, &cmdbuffer[bufindr][strchr_pointer - cmdbuffer[bufindr] + 1], laser.raster_raw_length);
 	  if (!laser.raster_direction) {
 	    destination[X_AXIS] = current_position[X_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
-	    if (laser.diagnostics) {
+      #if LASER_DIAGNOSTICS
           SERIAL_ECHO_START;
           SERIAL_ECHOLN("Negative Raster Line");
-        }
+      #endif
 	  } else {
 	    destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
-	    if (laser.diagnostics) {
+      #if LASER_DIAGNOSTICS
           SERIAL_ECHO_START;
           SERIAL_ECHOLN("Positive Raster Line");
-        }
+      #endif
 	  }
 	  laser.ppm = 1 / laser.raster_mm_per_pulse;
 	  laser.duration = labs(1 / (feedrate * laser.ppm) * 1000000);
@@ -1211,8 +1218,7 @@ void process_commands()
 		laser.intensity = 100.0;
 	  }
       if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
-      if (code_seen('P') && !IsStopped()) { laser.ppm = (float) code_value(); laser.mode = PULSED; }
-      if (code_seen('D') && !IsStopped()) laser.diagnostics = (bool) code_value();
+      if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) code_value(); laser.mode = PULSED; }
 
       laser.status = LASER_ON;
       laser.fired = LASER_FIRE_SPINDLE;
@@ -1224,7 +1230,7 @@ void process_commands()
 #endif // LASER_FIRE_SPINDLE
 #ifdef MUVE_Z_PEEL
   case 6:  //M6 mUVe 1 Laser On for 30 Seconds
-    laser_fire(100);
+    laser_fire(calc_laser_intensity(100));
     delay(30000);
     laser_extinguish();
     break;
@@ -2290,8 +2296,7 @@ void process_commands()
 	{
 	  if (code_seen('S') && !IsStopped()) laser.intensity = (float) code_value();
       if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
-      if (code_seen('P') && !IsStopped()) { laser.ppm = (float) code_value(); laser.mode = PULSED; }
-      if (code_seen('D') && !IsStopped()) laser.diagnostics = (bool) code_value();
+      if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) labs(code_value()); laser.mode = PULSED; }
 	}
 	break;
 	#endif // LASER
@@ -2330,10 +2335,9 @@ void process_commands()
         codenum += millis();  // keep track of when we started waiting
         previous_millis_cmd = millis();
         while(millis()  < codenum ){
-        manage_heater();
-        manage_inactivity();
-        lcd_update();
-      }
+          manage_inactivity();
+          lcd_update();
+        }
 
         plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], 30, active_extruder);
         st_synchronize();

@@ -1,6 +1,8 @@
 #include "Marlin.h"
 #include "planner.h"
+#ifndef LASER
 #include "temperature.h"
+#endif
 #include "ultralcd.h"
 #include "ConfigurationStore.h"
 
@@ -236,9 +238,10 @@ void Config_RetrieveSettings()
         int lcd_contrast;
         #endif
         EEPROM_READ_VAR(i,lcd_contrast);
-
+        #ifndef LASER
 		// Call updatePID (similar to when we have processed M301)
 		updatePID();
+        #endif
         SERIAL_ECHO_START;
         SERIAL_ECHOLNPGM("Stored settings retrieved");
     }

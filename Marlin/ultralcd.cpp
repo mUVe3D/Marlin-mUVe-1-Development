@@ -4,7 +4,9 @@
 #include "Marlin.h"
 #include "language.h"
 #include "cardreader.h"
+#ifndef LASER
 #include "temperature.h"
+#endif
 #include "stepper.h"
 #include "ConfigurationStore.h"
 #include "laser.h"
@@ -813,7 +815,7 @@ static void action_laser_test_100_30000ms() {
 
 static void laser_test_fire(uint8_t power, uint8_t dwell) {
 	enquecommand_P(PSTR("M80"));  // Enable laser accessories since we don't know if its been done (and there's no penalty for doing it again).
-    laser_fire(power);
+    laser_fire(calc_laser_intensity(power));
 	delay(dwell);
 	laser_extinguish();
 }

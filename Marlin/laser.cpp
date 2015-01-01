@@ -79,13 +79,12 @@ void laser_init()
 
   // initialize state to some sane defaults
   laser.intensity = 100.0;
-  laser.ppm = 0.0;
+  laser.ppm = 0;
   laser.duration = 0;
   laser.status = LASER_OFF;
   laser.firing = LASER_OFF;
   laser.mode = CONTINUOUS;
   laser.last_firing = 0;
-  laser.diagnostics = false;
   laser.time = 0;
   #ifdef LASER_RASTER
     laser.raster_aspect_ratio = LASER_RASTER_ASPECT_RATIO;
@@ -98,72 +97,56 @@ void laser_init()
     laser.peel_pause = 0.0;
   #endif // MUVE_Z_PEEL
 }
-void laser_fire(int intensity = 100.0){
-	laser.firing = LASER_ON;
-	laser.last_firing = micros(); // microseconds of last laser firing
-	if (intensity > 100.0) intensity = 100.0; // restrict intensity between 0 and 100
-	if (intensity < 0) intensity = 0;
-	#if LASER_CONTROL == 1
-              analogWrite(LASER_FIRING_PIN, (intensity*2.55));             
-        #endif
-        #if LASER_CONTROL == 2
-          analogWrite(LASER_INTENSITY_PIN, labs((intensity / 100.0)*(F_CPU / LASER_PWM)));
-          digitalWrite(LASER_FIRING_PIN, HIGH);
-        #endif
-        #if LASER_CONTROL == 3
-          digitalWrite(LASER_POWER_PIN, (intensity*2.55));
-          analogWrite(LASER_FIRING_PIN, labs((intensity / 100.0)*(F_CPU / LASER_PWM)));
-       #endif
 
-    if (laser.diagnostics) {
-	  SERIAL_ECHOLN("Laser fired");
-	}
+#if LASER_CONTROL == 1
+unsigned long calc_laser_intensity(float intensity) {
+  if (intensity > 100.0) intensity = 100.0; // restrict intensity between 0 and 255
+  if (intensity < 0.0) intensity = 0.0;
+  return labs(intensity*2.55);
 }
-void laser_extinguish(){
-	if (laser.firing == LASER_ON) {
-	  laser.firing = LASER_OFF;
-	  digitalWrite(LASER_FIRING_PIN, LOW);
-          #if LASER_CONTROL == 3
-          digitalWrite(LASER_POWER_PIN, 0);
-          #endif
-	  laser.time += millis() - (laser.last_firing / 1000);
-	  if (laser.diagnostics) {
-	    SERIAL_ECHOLN("Laser extinguished");
-	  }
-	}
+#else
+unsigned long calc_laser_intensity(float intensity) {
+  if (intensity > 100.0) intensity = 100.0; // restrict intensity between 0 and 255
+  if (intensity < 0.0) intensity = 0.0;
+  return labs((intensity / 100.0)*(F_CPU / LASER_PWM));
 }
+#endif
+
 #ifdef LASER_PERIPHERALS
-bool laser_peripherals_ok(){
+bool laser_peripherals_ok() {
 	return !digitalRead(LASER_PERIPHERALS_STATUS_PIN);
 }
-void laser_peripherals_on(){
+
+void laser_peripherals_on() {
 	digitalWrite(LASER_PERIPHERALS_PIN, LOW);
-	if (laser.diagnostics) {
+  #if LASER_DIAGNOSTICS
 	  SERIAL_ECHO_START;
 	  SERIAL_ECHOLNPGM("Laser Peripherals Enabled");
-    }
+  #endif
 }
-void laser_peripherals_off(){
+
+void laser_peripherals_off() {
 	if (!digitalRead(LASER_PERIPHERALS_STATUS_PIN)) {
 	  digitalWrite(LASER_PERIPHERALS_PIN, HIGH);
-	  if (laser.diagnostics) {
+    #if LASER_DIAGNOSTICS
 	    SERIAL_ECHO_START;
 	    SERIAL_ECHOLNPGM("Laser Peripherals Disabled");
-      }
-    }
+    #endif
+  }
 }
+
 void laser_wait_for_peripherals() {
 	unsigned long timeout = millis() + LASER_PERIPHERALS_TIMEOUT;
-	if (laser.diagnostics) {
+  #if LASER_DIAGNOSTICS
 	  SERIAL_ECHO_START;
 	  SERIAL_ECHOLNPGM("Waiting for peripheral control board signal...");
-	}
+	#endif
 	while(!laser_peripherals_ok()) {
 		if (millis() > timeout) {
-			if (laser.diagnostics) {
+      #if LASER_DIAGNOSTICS
 			  SERIAL_ERROR_START;
 			  SERIAL_ERRORLNPGM("Peripheral control board failed to respond");
-			}
+			#endif
 			Stop();
 			break;
 		}

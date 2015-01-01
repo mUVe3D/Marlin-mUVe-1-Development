@@ -24,7 +24,11 @@
 #include "Marlin.h"
 #include "stepper.h"
 #include "planner.h"
+#ifdef LASER
+#include "laser.h"
+#else
 #include "temperature.h"
+#endif // LASER
 #include "ultralcd.h"
 #include "language.h"
 #include "cardreader.h"
@@ -32,9 +36,6 @@
 #if defined(DIGIPOTSS_PIN) && DIGIPOTSS_PIN > -1
 #include <SPI.h>
 #endif
-#ifdef LASER
-#include "laser.h"
-#endif // LASER
 
 //===========================================================================
 //=============================public variables  ============================
@@ -351,9 +352,9 @@ ISR(TIMER1_COMPA_vect)
 
       #ifdef LASER_RASTER
         if (current_block->laser_mode == RASTER) {
-			counter_raster = 0;
-		}
-	  #endif // LASER_RASTER
+			    counter_raster = 0;
+		    }
+	    #endif // LASER_RASTER
 
 //      #ifdef ADVANCE
 //      e_steps[current_block->active_extruder] = 0;
@@ -370,16 +371,18 @@ ISR(TIMER1_COMPA_vect)
 
 	// Continuous firing of the laser during a move happens here, PPM and raster happen further down
 	#ifdef LASER
+  #if LASER_CONTROL == 1
 	if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON) {
 	  laser_fire(current_block->laser_intensity);
     }
-    if (current_block->laser_duration > 0 && (current_block->laser_duration + laser.last_firing < micros())) {
+  if (current_block->laser_duration > 0 && (current_block->laser_duration + laser.last_firing < micros())) {
 	  laser_extinguish();
 	}
-    if (current_block->laser_status == LASER_OFF) {
-      laser_extinguish();
-    }
-    #endif // LASER
+  #endif
+  if (current_block->laser_status == LASER_OFF) {
+    laser_extinguish();
+  }
+  #endif // LASER
 
     // Set the direction bits (X_AXIS=A_AXIS and Y_AXIS=B_AXIS for COREXY)
     if((out_bits & (1<<X_AXIS))!=0){
@@ -652,23 +655,25 @@ ISR(TIMER1_COMPA_vect)
       // steps_l = step count between laser firings
       //
       #ifdef LASER
-		counter_l += current_block->steps_l;
+		  counter_l += current_block->steps_l;
 		  if (counter_l > 0) {
-			if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
-		  	  laser_fire(current_block->laser_intensity);
-		  	  if (laser.diagnostics) {
-		  	    SERIAL_ECHOPAIR("X: ", counter_x);
-		  	    SERIAL_ECHOPAIR("Y: ", counter_y);
-		  	    SERIAL_ECHOPAIR("L: ", counter_l);
-			  }
+      #if LASER_CONTROL == 3
+			if (current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
+		  	laser_fire(current_block->laser_intensity);
+		  	#if LASER_DIAGNOSTICS
+		  	  SERIAL_ECHOPAIR("X: ", counter_x);
+		  	  SERIAL_ECHOPAIR("Y: ", counter_y);
+		  	  SERIAL_ECHOPAIR("L: ", counter_l);
+        #endif
 			}
+      #endif
 			#ifdef LASER_RASTER
 			if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
-			  laser_fire(current_block->laser_raster_data[counter_raster]/255.0*100.0);
-			  if (laser.diagnostics) {
+			  laser_fire_raster(current_block->laser_raster_data[counter_raster]/255.0*100.0);
+        #if LASER_DIAGNOSTICS
 			    SERIAL_ECHO("Pixel: ");
 			    SERIAL_ECHOLN(itostr3(current_block->laser_raster_data[counter_raster]));
-		      }
+        #endif
 		      counter_raster++;
 			}
 			#endif // LASER_RASTER
@@ -1003,7 +1008,9 @@ void st_init()
 void st_synchronize()
 {
     while( blocks_queued()) {
+    #ifndef LASER
     manage_heater();
+    #endif
     manage_inactivity();
     lcd_update();
   }

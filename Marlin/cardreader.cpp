@@ -2,7 +2,9 @@
 #include "cardreader.h"
 #include "ultralcd.h"
 #include "stepper.h"
+#ifndef LASER
 #include "temperature.h"
+#endif
 #include "language.h"
 
 #ifdef SDSUPPORT
@@ -555,6 +557,8 @@ void CardReader::printingHasFinished()
         //finishAndDisableSteppers();
         enquecommand_P(PSTR(SD_FINISHED_RELEASECOMMAND));
     }
+    #ifndef LASER
     autotempShutdown();
+    #endif
 }
 #endif //SDSUPPORT
