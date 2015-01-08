@@ -657,7 +657,7 @@ ISR(TIMER1_COMPA_vect)
       #ifdef LASER
       counter_l += current_block->steps_l;
       if (counter_l > 0) {
-      #if LASER_CONTROL = 2 || LASER_CONTROL == 3
+      #if LASER_CONTROL == 2 || LASER_CONTROL == 3
       if (current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
         laser_fire(current_block->laser_intensity);
         #if LASER_DIAGNOSTICS
