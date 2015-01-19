@@ -102,7 +102,7 @@
 
 // Uncomment these options for the mUVe 1 3D printer
  #define CUSTOM_MENDEL_NAME "mUVe1 Printer"
- #define LASER_WATTS 0.05
+ #define LASER_WATTS 0.15
  #define LASER_DIAMETER 0.1 // milimeters
  #define LASER_PWM 8000 // hertz
  #define MUVE_Z_PEEL // The mUVe 1 uses a special peel maneuver between each layer, it requires independent control of each Z motor
@@ -180,7 +180,7 @@
 
 // PID settings:
 // Comment the following line to disable PID and enable bang-bang.
-#define PIDTEMP
+//#define PIDTEMP
 #define BANG_MAX 255 // limits current to nozzle while in bang-bang mode; 255=full current
 #define PID_MAX 255 // limits current to nozzle while PID is active (see PID_FUNCTIONAL_RANGE below); 255=full current
 #ifdef PIDTEMP
@@ -359,7 +359,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 
 // default settings
 
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {36.36,36.36,640,640}  // default steps per unit for Ultimaker
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {36.36,36.36,640,640}  // tweaked steps per unit for mUVe 3D
 #define DEFAULT_MAX_FEEDRATE          {500, 500, 4, 4}    // (mm/sec)
 #define DEFAULT_MAX_ACCELERATION      {2600,2600,2.5,2.5}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 
@@ -373,7 +373,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 // #define EXTRUDER_OFFSET_Y {0.0, 5.00}  // (in mm) for each extruder, offset of the hotend on the Y axis
 
 // The speed change that does not require acceleration (i.e. the software might assume it can be done instantaneously)
-#define DEFAULT_XYJERK                20.0    // (mm/sec)
+#define DEFAULT_XYJERK                0.0    // (mm/sec)
 #define DEFAULT_ZJERK                 0.0     // (mm/sec)
 #define DEFAULT_EJERK                 0.0    // (mm/sec)
 
