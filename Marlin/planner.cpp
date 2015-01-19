@@ -689,12 +689,19 @@ block->steps_y = labs((target[X_AXIS]-position[X_AXIS]) - (target[Y_AXIS]-positi
     block->laser_duration = laser.duration;
     block->laser_status = laser.status;
     block->laser_mode = laser.mode;
-    if (laser.mode == PULSED or laser.mode == RASTER) {
+    laser.micron_counter = 0;
+    laser.time_counter = 0;
+    
+    #ifdef LASER_RASTER
+    if (laser.mode == RASTER) {
       block->steps_l = block->millimeters*laser.ppm;
+      SERIAL_ECHO_START;
+      SERIAL_ECHO("steps_l: "); SERIAL_ECHOLN(block->steps_l);
     } else {
       block->steps_l = 0;
     }
     block->step_event_count = max(block->steps_x, max(block->steps_y, max(block->steps_z, max(block->steps_e, block->steps_l))));
+    #endif // LASER_RASTER
 
     #if LASER_DIAGNOSTICS
 		if (block->laser_status == LASER_ON) {

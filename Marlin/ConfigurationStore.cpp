@@ -62,9 +62,11 @@ void Config_StoreSettings()
   #ifdef DELTA
   EEPROM_WRITE_VAR(i,endstop_adj);
   #endif
+  /*
   #ifdef LASER
   EEPROM_WRITE_VAR(i,laser.lifetime);
   #endif
+  */
   #ifndef ULTIPANEL
   int plaPreheatHotendTemp = PLA_PREHEAT_HOTEND_TEMP, plaPreheatHPBTemp = PLA_PREHEAT_HPB_TEMP, plaPreheatFanSpeed = PLA_PREHEAT_FAN_SPEED;
   int absPreheatHotendTemp = ABS_PREHEAT_HOTEND_TEMP, absPreheatHPBTemp = ABS_PREHEAT_HPB_TEMP, absPreheatFanSpeed = ABS_PREHEAT_FAN_SPEED;
@@ -162,6 +164,7 @@ void Config_PrintSettings()
     SERIAL_ECHOPAIR(" Z" ,endstop_adj[2] );
     SERIAL_ECHOLN("");
 #endif
+    /*
 #ifdef LASER
 	SERIAL_ECHO_START;
 	SERIAL_ECHOLNPGM("Laser lifetime usage:");
@@ -171,6 +174,7 @@ void Config_PrintSettings()
     SERIAL_ECHOPAIR(" Minutes: ",(unsigned long)laser.lifetime % 60);
     SERIAL_ECHOLN("");
 #endif
+    */
 #ifdef PIDTEMP
     SERIAL_ECHO_START;
     SERIAL_ECHOLNPGM("PID settings:");
@@ -215,7 +219,7 @@ void Config_RetrieveSettings()
         EEPROM_READ_VAR(i,endstop_adj);
         #endif
         #ifdef LASER
-        EEPROM_READ_VAR(i,laser.lifetime);
+        //EEPROM_READ_VAR(i,laser.lifetime);
         #endif
         #ifndef ULTIPANEL
         int plaPreheatHotendTemp, plaPreheatHPBTemp, plaPreheatFanSpeed;

@@ -57,6 +57,8 @@ static long counter_x,       // Counter variables for the bresenham line tracer
 
 #ifdef LASER
 static long counter_l;
+static bool stepped_x;
+static bool stepped_y;
 #endif // LASER
 
 #ifdef LASER_RASTER
@@ -361,6 +363,9 @@ ISR(TIMER1_COMPA_vect)
 //      #endif
     }
     else {
+        if(laser.firing == LASER_ON) {
+          laser_extinguish();
+        }
         OCR1A=2000; // 1kHz.
     }
   }
@@ -370,19 +375,39 @@ ISR(TIMER1_COMPA_vect)
     out_bits = current_block->direction_bits;
 
   // Continuous firing of the laser during a move happens here, PPM and raster happen further down
-  #ifdef LASER
-  #if LASER_CONTROL == 1
+  #if defined(LASER) && LASER_CONTROL == 1
   if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON) {
     laser_fire(current_block->laser_intensity);
     }
   if (current_block->laser_duration > 0 && (current_block->laser_duration + laser.last_firing < micros())) {
     laser_extinguish();
   }
-  #endif
   if (current_block->laser_status == LASER_OFF) {
     laser_extinguish();
   }
-  #endif // LASER
+  #endif
+
+  #if defined(LASER) && (LASER_CONTROL == 2 || LASER_CONTROL == 3) && !defined(LASER_RASTER)
+    // Laser Pulsed Firing Mode
+
+    if (current_block->laser_status == LASER_OFF) {
+      // If laser was left on from last block and this block says off
+      // Extinguish immediately and reset the counters
+      laser_extinguish();
+      laser.micron_counter = 0;
+      laser.time_counter = 0;
+    } else {
+      if (laser.micron_counter == 0 && laser.firing == LASER_OFF) {
+      // Starting a pulse! - Fires every Nth micrometer
+        laser_fire(current_block->laser_intensity);
+        laser.time_counter = 0;
+      } else if (laser.time_counter >= laser.pulse_ticks && laser.firing == LASER_ON) {
+      // Extinguish the laser! - Extinguishes after X ms (since last fire)
+        laser_extinguish();
+        laser.time_counter = 0;
+      }
+    }
+  #endif
 
     // Set the direction bits (X_AXIS=A_AXIS and Y_AXIS=B_AXIS for COREXY)
     if((out_bits & (1<<X_AXIS))!=0){
@@ -583,8 +608,11 @@ ISR(TIMER1_COMPA_vect)
       }
       #endif //ADVANCE
 
+        stepped_x = stepped_y = false;
+
         counter_x += current_block->steps_x;
         if (counter_x > 0) {
+          stepped_x = true;
         #ifdef DUAL_X_CARRIAGE
           if (extruder_duplication_enabled){
             WRITE(X_STEP_PIN, !INVERT_X_STEP_PIN);
@@ -619,6 +647,7 @@ ISR(TIMER1_COMPA_vect)
 
         counter_y += current_block->steps_y;
         if (counter_y > 0) {
+          stepped_y = true;
           WRITE(Y_STEP_PIN, !INVERT_Y_STEP_PIN);
           counter_y -= current_block->step_event_count;
           count_position[Y_AXIS]+=count_direction[Y_AXIS];
@@ -652,41 +681,53 @@ ISR(TIMER1_COMPA_vect)
         }
       #endif //!ADVANCE
 
-      // steps_l = step count between laser firings
-      //
+
       #ifdef LASER
-      counter_l += current_block->steps_l;
-      if (counter_l > 0) {
-      #if LASER_CONTROL == 2 || LASER_CONTROL == 3
-      if (current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
-        laser_fire(current_block->laser_intensity);
-        #if LASER_DIAGNOSTICS
-          SERIAL_ECHOPAIR("X: ", counter_x);
-          SERIAL_ECHOPAIR("Y: ", counter_y);
-          SERIAL_ECHOPAIR("L: ", counter_l);
-        #endif
-      }
-      #endif
-      #ifdef LASER_RASTER
-      if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
-        laser_fire_raster(current_block->laser_raster_data[counter_raster]/255.0*100.0);
-        #if LASER_DIAGNOSTICS
-          SERIAL_ECHO("Pixel: ");
-          SERIAL_ECHOLN(itostr3(current_block->laser_raster_data[counter_raster]));
-        #endif
-          counter_raster++;
-      }
-      #endif // LASER_RASTER
-      counter_l -= current_block->step_event_count;
-      }
-      if (current_block->laser_duration > 0 && (micros() - laser.last_firing) >= current_block->laser_duration) {
-        laser_extinguish();
-      }
+        #ifdef LASER_RASTER
+        if (counter_l > 0) {
+          if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
+            laser_fire_raster(current_block->laser_raster_data[counter_raster]/255.0*100.0);
+              #if LASER_DIAGNOSTICS
+                SERIAL_ECHO("Pixel: ");
+                SERIAL_ECHOLN(itostr3(current_block->laser_raster_data[counter_raster]));
+              #endif
+            counter_raster++;
+          }
+          counter_l -= current_block->step_event_count;
+        }
+        if (current_block->laser_duration > 0 && (micros() - laser.last_firing) >= current_block->laser_duration) {
+          #if LASER_DIAGNOSTICS
+            SERIAL_ECHO("laser_duration: ");SERIAL_ECHOLN(current_block->laser_duration);
+          #endif
+          laser_extinguish();
+        }
+        #else // NOT LASER_RASTER
+        // Increment the micron counter by however much we've moved
+        if(stepped_x && stepped_y) {
+          laser.micron_counter += laser.micron_inc_diagonal;
+        } else if(stepped_x || stepped_y) {
+          laser.micron_counter += (stepped_x ? laser.micron_inc_x : laser.micron_inc_y);
+        }
+        // We've gone over the maximum length, start a new pulse on the next iteration
+        if (laser.micron_counter >= laser.microns_per_pulse) {
+          laser.micron_counter = 0;
+          laser.time_counter = 0;
+        }
+        #endif // LASER RASTER
       #endif // LASER
 
       step_events_completed += 1;
       if(step_events_completed >= current_block->step_event_count) break;
     }
+
+    // Pulsed Firing Mode - time increment
+    // (happens outside the inner stepper loop, because timings of iterations are not known)
+    #if defined(LASER) && (LASER_CONTROL == 2 || LASER_CONTROL == 3) && !defined(LASER_RASTER)
+      if(laser.firing == LASER_ON) {
+        laser.time_counter += OCR1A;              
+      }
+    #endif
+
     // Calculare new timer value
     unsigned short timer;
     unsigned short step_rate;

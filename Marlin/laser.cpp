@@ -24,6 +24,7 @@
 #include <avr/interrupt.h>
 #include <Arduino.h>
 #include "Marlin.h"
+#include "planner.h"
 
 laser_t laser;
 
@@ -86,6 +87,9 @@ void laser_init()
   laser.mode = CONTINUOUS;
   laser.last_firing = 0;
   laser.time = 0;
+
+  SERIAL_ECHOLN("init");
+
   #ifdef LASER_RASTER
     laser.raster_aspect_ratio = LASER_RASTER_ASPECT_RATIO;
     laser.raster_mm_per_pulse = LASER_RASTER_MM_PER_PULSE;
@@ -96,6 +100,25 @@ void laser_init()
     laser.peel_speed = 2.0;
     laser.peel_pause = 0.0;
   #endif // MUVE_Z_PEEL
+}
+
+void laser_pulse_init() {
+  // Initialize the counters
+  laser.micron_counter = 0;
+  laser.time_counter = 0;
+  // Length of one pulse
+  laser.microns_per_pulse = (unsigned int) (1000./laser.ppm);
+  // Length of one X step in microns
+  laser.micron_inc_x = (unsigned int) (1000./axis_steps_per_unit[0]);
+  // Length of one Y step in microns
+  laser.micron_inc_y = (unsigned int) (1000./axis_steps_per_unit[1]);
+  // Length of one X+Y step in microns
+  laser.micron_inc_diagonal = (unsigned int) sqrt(sq(laser.micron_inc_x) + sq(laser.micron_inc_y));
+  // Duration of one laser pulse in Timer1 ticks
+  // One Timer1 tick @ 16 Mhz CPU = 1 / (2 Mhz) = 0.5 us; so ticks = duration / 0.5 us = duration * 2
+  laser.pulse_ticks = laser.duration << 1;
+  // CORRECTION AFTER MEASURING
+  // laser.pulse_ticks = laser.duration;
 }
 
 #if LASER_CONTROL == 1

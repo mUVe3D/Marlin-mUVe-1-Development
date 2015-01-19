@@ -32,13 +32,13 @@
 #include "ultralcd.h"
 #include "planner.h"
 #include "stepper.h"
-#include "temperature.h"
 #include "motion_control.h"
 #include "cardreader.h"
 #include "watchdog.h"
 #include "ConfigurationStore.h"
 #include "language.h"
 #include "pins_arduino.h"
+#include "temperature.h"
 
 #ifdef LASER_RASTER
 #include "Base64.h"
@@ -890,6 +890,7 @@ void process_commands()
           if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
           if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) code_value(); laser.mode = PULSED; }
 
+          laser_pulse_init();
           laser.status = LASER_ON;
           laser.fired = LASER_FIRE_G1;
         #endif // LASER_FIRE_G1
@@ -935,7 +936,7 @@ void process_commands()
       break;
     #ifdef LASER_RASTER
     case 7: //G7 Execute raster line
-      if (code_seen('L')) laser.raster_raw_length = int(code_value());
+    if (code_seen('L')) laser.raster_raw_length = int(code_value());
     if (code_seen('N')) {
     laser.raster_direction = (bool)code_value();
     destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
@@ -956,6 +957,7 @@ void process_commands()
     }
     laser.ppm = 1 / laser.raster_mm_per_pulse;
     laser.duration = labs(1 / (feedrate * laser.ppm) * 1000000);
+    laser_pulse_init();
     laser.mode = RASTER;
     laser.status = LASER_ON;
     laser.fired = RASTER;
@@ -1006,6 +1008,9 @@ void process_commands()
         destination[i] = current_position[i];
       }
       feedrate = 0.0;
+
+      laser_extinguish();
+      laser.status = LASER_OFF;
 
 #ifdef DELTA
           // A delta can only safely home all axis at the same time
@@ -1134,6 +1139,7 @@ void process_commands()
           current_position[Z_AXIS]=code_value()+add_homeing[2];
         }
       }
+
       #ifdef MUVE_Z_PEEL
         plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[Z_AXIS]);
       #else
@@ -1213,13 +1219,14 @@ void process_commands()
 #ifdef LASER_FIRE_SPINDLE
     case 3:  //M3 - fire laser
       if (code_seen('S') && !IsStopped()) {
-        laser.intensity = (float) code_value();
-      } else {
-        laser.intensity = 100.0;
-      }
+      laser.intensity = (float) code_value();
+    } else {
+    laser.intensity = 100.0;
+    }
       if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
       if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) code_value(); laser.mode = PULSED; }
 
+      laser_pulse_init();
       laser.status = LASER_ON;
       laser.fired = LASER_FIRE_SPINDLE;
 
@@ -2297,6 +2304,7 @@ void process_commands()
     if (code_seen('S') && !IsStopped()) laser.intensity = (float) code_value();
     if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
     if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) labs(code_value()); laser.mode = PULSED; }
+    laser_pulse_init();
   }
   break;
   #endif // LASER
@@ -2834,13 +2842,15 @@ void manage_inactivity()
         disable_e0();
         disable_e1();
         disable_e2();
+        /*
         #ifdef LASER
           if (laser.time / 60000 > 0) {
         laser.lifetime += laser.time / 60000; // convert to minutes
         laser.time = 0;
         Config_StoreSettings();
-      }
-    #endif // LASER
+         }
+        #endif // LASER
+        */
     #ifdef LASER_PERIPHERALS
             laser_peripherals_off();
     #endif
@@ -2884,11 +2894,12 @@ void manage_inactivity()
     }
   #endif
 
-  #ifdef LASER
+  #ifdef LASER_RASTER
   if (current_block->laser_duration > 0 && (micros() - laser.last_firing) >= current_block->laser_duration) {
+  SERIAL_ECHOLN("e4");
     laser_extinguish();
   }
-  #endif // LASER
+  #endif // LASER RASTER
 
   check_axes_activity();
 }
