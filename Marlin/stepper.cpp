@@ -363,9 +363,6 @@ ISR(TIMER1_COMPA_vect)
 //      #endif
     }
     else {
-        if(laser.firing == LASER_ON) {
-          laser_extinguish();
-        }
         OCR1A=2000; // 1kHz.
     }
   }
@@ -1048,13 +1045,17 @@ void st_init()
 // Block until all buffered steps are executed
 void st_synchronize()
 {
-    while( blocks_queued()) {
+  while( blocks_queued()) {
     #ifndef LASER
     manage_heater();
     #endif
     manage_inactivity();
     lcd_update();
   }
+
+#ifdef LASER
+  if(laser.firing == LASER_ON) { laser_extinguish(); }
+#endif
 }
 
 void st_set_position(const long &x, const long &y, const long &z, const long &e)

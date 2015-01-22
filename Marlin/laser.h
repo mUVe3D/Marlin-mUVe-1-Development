@@ -93,12 +93,12 @@ FORCE_INLINE void laser_fire(unsigned long intensity){
       analogWrite(LASER_INTENSITY_PIN, intensity);
       WRITE(LASER_FIRING_PIN, HIGH);
     #elif LASER_CONTROL == 3
-      analogWrite(LASER_POWER_PIN, 255);
+      WRITE(LASER_POWER_PIN, HIGH);
       analogWrite(LASER_FIRING_PIN, intensity);
     #endif
 
     #if LASER_DIAGNOSTICS
-      SERIAL_ECHOLN("Laser fired");
+      SERIAL_ECHOLN("*F");
     #endif
   }
 }
@@ -121,22 +121,22 @@ FORCE_INLINE void laser_fire_raster(int intensity = 100.0) {
   #endif
 
   #if LASER_DIAGNOSTICS
-	  SERIAL_ECHOLN("Laser fired");
-	#endif
+    SERIAL_ECHOLN("Laser fired");
+  #endif
 }
 
 FORCE_INLINE void laser_extinguish() {
-	if (laser.firing == LASER_ON) {
-	  laser.firing = LASER_OFF;
-	  digitalWrite(LASER_FIRING_PIN, LOW);
+  if (laser.firing == LASER_ON) {
+    laser.firing = LASER_OFF;
+    digitalWrite(LASER_FIRING_PIN, LOW);
     #if LASER_CONTROL == 3
     digitalWrite(LASER_POWER_PIN, 0);
     #endif
 
     #if LASER_DIAGNOSTICS
-	    SERIAL_ECHOLN("Laser extinguished");
-	  #endif
-	}
+      SERIAL_ECHOLN("*E");
+    #endif
+  }
 }
 
 #endif // LASER_H

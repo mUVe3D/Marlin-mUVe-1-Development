@@ -883,10 +883,10 @@ void process_commands()
 
         #ifdef LASER_FIRE_G1
           if (code_seen('S') && !IsStopped()) {
-            laser.intensity = (float) code_value();
-          } else {
-            laser.intensity = 100.0;
-          }
+          laser.intensity = (float) code_value();
+        } else {
+          laser.intensity = 100.0;
+        }
           if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
           if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) code_value(); laser.mode = PULSED; }
 
@@ -936,7 +936,7 @@ void process_commands()
       break;
     #ifdef LASER_RASTER
     case 7: //G7 Execute raster line
-    if (code_seen('L')) laser.raster_raw_length = int(code_value());
+      if (code_seen('L')) laser.raster_raw_length = int(code_value());
     if (code_seen('N')) {
     laser.raster_direction = (bool)code_value();
     destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
@@ -1230,22 +1230,33 @@ void process_commands()
       laser.status = LASER_ON;
       laser.fired = LASER_FIRE_SPINDLE;
 
-      break;
+        break;
     case 5:  //M5 stop firing laser
     laser.status = LASER_OFF;
       break;
 #endif // LASER_FIRE_SPINDLE
 #ifdef MUVE_Z_PEEL
-  case 6:  //M6 mUVe 1 Laser On for 30 Seconds
-    laser_fire(calc_laser_intensity(100));
-    delay(30000);
-    laser_extinguish();
-    break;
+    case 6:  //M6 mUVe 1 Laser On for 30 Seconds
+      laser_fire(calc_laser_intensity(100.0));
+      delay(30000);
+      laser_extinguish();
+        break;
 #endif
 #ifdef MUVE_Z_PEEL
-  case 7:  //M7 mUVe 1 Laser Off
-    laser_extinguish();
+    case 7:  //M7 mUVe 1 Laser On (Test Fire)
+      laser_extinguish();
+      if (code_seen('S')) {
+        laser_fire(calc_laser_intensity((float) code_value()));
+      } else {
+        laser_fire(calc_laser_intensity(100.0));
+      }
+      break;
+    
+    case 8:  //M8 mUVe 1 Laser Off
+      laser_extinguish();
+      break;
 #endif
+      
     case 17:
         LCD_MESSAGEPGM(MSG_NO_MOVE);
         enable_x();
