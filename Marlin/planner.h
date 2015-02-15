@@ -69,15 +69,11 @@ typedef struct {
     unsigned long e_to_p_pressure;
   #endif // BARICUDA
   #ifdef LASER
-	uint8_t laser_mode; // CONTINUOUS, PULSED, RASTER
-	bool laser_status; // LASER_OFF, LASER_ON
+    bool laser_status; // LASER_OFF, LASER_ON
     unsigned long laser_ppm; // pulses per millimeter, for pulsed and raster firing modes
-    unsigned long laser_duration; // laser firing duration in microseconds, for pulsed and raster firing modes
+    unsigned long laser_duration; // laser firing duration in microseconds, for pulsed firing mode
     long steps_l; // step count between firings of the laser, for pulsed firing mode
     unsigned long laser_intensity; // Laser firing instensity in PWM ticks
-    #ifdef LASER_RASTER
-      char laser_raster_data[LASER_MAX_RASTER_LINE];
-    #endif // LASER_RASTER
   #endif // LASER
   volatile char busy;
 } block_t;

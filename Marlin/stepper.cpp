@@ -56,14 +56,9 @@ static long counter_x,       // Counter variables for the bresenham line tracer
             counter_e;
 
 #ifdef LASER
-static long counter_l;
 static bool stepped_x;
 static bool stepped_y;
 #endif // LASER
-
-#ifdef LASER_RASTER
-static int counter_raster;
-#endif // LASER_RASTER
 
 volatile static unsigned long step_events_completed; // The number of step events executed in the current block
 #ifdef ADVANCE
@@ -336,9 +331,6 @@ ISR(TIMER1_COMPA_vect)
       counter_y = counter_x;
       counter_z = counter_x;
       counter_e = counter_x;
-      #ifdef LASER
-      counter_l = counter_x;
-      #endif //LASER
       step_events_completed = 0;
 
       #ifdef Z_LATE_ENABLE
@@ -351,12 +343,6 @@ ISR(TIMER1_COMPA_vect)
           return;
         }
       #endif
-
-      #ifdef LASER_RASTER
-        if (current_block->laser_mode == RASTER) {
-          counter_raster = 0;
-        }
-      #endif // LASER_RASTER
 
 //      #ifdef ADVANCE
 //      e_steps[current_block->active_extruder] = 0;
@@ -371,21 +357,22 @@ ISR(TIMER1_COMPA_vect)
     // Set directions TO DO This should be done once during init of trapezoid. Endstops -> interrupt
     out_bits = current_block->direction_bits;
 
-  // Continuous firing of the laser during a move happens here, PPM and raster happen further down
   #if defined(LASER) && LASER_CONTROL == 1
-  if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON) {
-    laser_fire(current_block->laser_intensity);
+    // Laser - Continuous Firing Mode
+
+    if (current_block->laser_status == LASER_ON) {
+      laser_fire(current_block->laser_intensity);
     }
-  if (current_block->laser_duration > 0 && (current_block->laser_duration + laser.last_firing < micros())) {
-    laser_extinguish();
-  }
-  if (current_block->laser_status == LASER_OFF) {
-    laser_extinguish();
-  }
+    if (current_block->laser_duration > 0 && (current_block->laser_duration + laser.last_firing < micros())) {
+      laser_extinguish();
+    }
+    if (current_block->laser_status == LASER_OFF) {
+      laser_extinguish();
+    }
   #endif
 
-  #if defined(LASER) && (LASER_CONTROL == 2 || LASER_CONTROL == 3) && !defined(LASER_RASTER)
-    // Laser Pulsed Firing Mode
+  #if defined(LASER) && LASER_CONTROL == 3
+    // Laser - Pulsed Firing Mode
 
     if (current_block->laser_status == LASER_OFF) {
       // If laser was left on from last block and this block says off
@@ -679,26 +666,9 @@ ISR(TIMER1_COMPA_vect)
       #endif //!ADVANCE
 
 
-      #ifdef LASER
-        #ifdef LASER_RASTER
-        if (counter_l > 0) {
-          if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
-            laser_fire_raster(current_block->laser_raster_data[counter_raster]/255.0*100.0);
-              #if LASER_DIAGNOSTICS
-                SERIAL_ECHO("Pixel: ");
-                SERIAL_ECHOLN(itostr3(current_block->laser_raster_data[counter_raster]));
-              #endif
-            counter_raster++;
-          }
-          counter_l -= current_block->step_event_count;
-        }
-        if (current_block->laser_duration > 0 && (micros() - laser.last_firing) >= current_block->laser_duration) {
-          #if LASER_DIAGNOSTICS
-            SERIAL_ECHO("laser_duration: ");SERIAL_ECHOLN(current_block->laser_duration);
-          #endif
-          laser_extinguish();
-        }
-        #else // NOT LASER_RASTER
+      #if defined(LASER) && LASER_CONTROL == 3
+        // Laser - Pulsed Firing Mode - micron increment
+
         // Increment the micron counter by however much we've moved
         if(stepped_x && stepped_y) {
           laser.micron_counter += laser.micron_inc_diagonal;
@@ -710,16 +680,16 @@ ISR(TIMER1_COMPA_vect)
           laser.micron_counter = 0;
           laser.time_counter = 0;
         }
-        #endif // LASER RASTER
       #endif // LASER
 
       step_events_completed += 1;
       if(step_events_completed >= current_block->step_event_count) break;
     }
 
-    // Pulsed Firing Mode - time increment
-    // (happens outside the inner stepper loop, because timings of iterations are not known)
-    #if defined(LASER) && (LASER_CONTROL == 2 || LASER_CONTROL == 3) && !defined(LASER_RASTER)
+    #if defined(LASER) && LASER_CONTROL == 3
+      // Laser - Pulsed Firing Mode - time increment
+    
+      // (happens outside the inner stepper loop, because timings of iterations are not known)
       if(laser.firing == LASER_ON) {
         laser.time_counter += OCR1A;              
       }

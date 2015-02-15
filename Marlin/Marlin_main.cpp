@@ -40,10 +40,6 @@
 #include "pins_arduino.h"
 #include "temperature.h"
 
-#ifdef LASER_RASTER
-#include "Base64.h"
-#endif // LASER_RASTER
-
 #if NUM_SERVOS > 0
 #include "Servo.h"
 #endif
@@ -887,8 +883,8 @@ void process_commands()
         } else {
           laser.intensity = 100.0;
         }
-          if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
-          if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) code_value(); laser.mode = PULSED; }
+          if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); }
+          if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) code_value(); }
 
           laser_pulse_init();
           laser.status = LASER_ON;
@@ -934,37 +930,6 @@ void process_commands()
         lcd_update();
       }
       break;
-    #ifdef LASER_RASTER
-    case 7: //G7 Execute raster line
-      if (code_seen('L')) laser.raster_raw_length = int(code_value());
-    if (code_seen('N')) {
-    laser.raster_direction = (bool)code_value();
-    destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
-    }
-      if (code_seen('D')) laser.raster_num_pixels = base64_decode(laser.raster_data, &cmdbuffer[bufindr][strchr_pointer - cmdbuffer[bufindr] + 1], laser.raster_raw_length);
-    if (!laser.raster_direction) {
-      destination[X_AXIS] = current_position[X_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
-      #if LASER_DIAGNOSTICS
-          SERIAL_ECHO_START;
-          SERIAL_ECHOLN("Negative Raster Line");
-      #endif
-    } else {
-      destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
-      #if LASER_DIAGNOSTICS
-          SERIAL_ECHO_START;
-          SERIAL_ECHOLN("Positive Raster Line");
-      #endif
-    }
-    laser.ppm = 1 / laser.raster_mm_per_pulse;
-    laser.duration = labs(1 / (feedrate * laser.ppm) * 1000000);
-    laser_pulse_init();
-    laser.mode = RASTER;
-    laser.status = LASER_ON;
-    laser.fired = RASTER;
-    prepare_move();
-
-      break;
-  #endif // LASER_RASTER
 
     #ifdef FWRETRACT
     case 10: // G10 retract
@@ -1223,8 +1188,8 @@ void process_commands()
     } else {
     laser.intensity = 100.0;
     }
-      if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
-      if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) code_value(); laser.mode = PULSED; }
+      if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); }
+      if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) code_value(); }
 
       laser_pulse_init();
       laser.status = LASER_ON;
@@ -1293,6 +1258,9 @@ void process_commands()
       starttime=millis();
       break;
     case 25: //M25 - Pause SD print
+      #ifdef LASER
+      laser_extinguish();
+      #endif
       card.pauseSDPrint();
       break;
     case 26: //M26 - Set SD index
@@ -2313,8 +2281,8 @@ void process_commands()
   case 649: // M649 set laser options
   {
     if (code_seen('S') && !IsStopped()) laser.intensity = (float) code_value();
-    if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); laser.mode = PULSED; }
-    if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) labs(code_value()); laser.mode = PULSED; }
+    if (code_seen('L') && !IsStopped()) { laser.duration = (unsigned long)labs(code_value()); }
+    if (code_seen('P') && !IsStopped()) { laser.ppm = (unsigned long) labs(code_value()); }
     laser_pulse_init();
   }
   break;
@@ -2740,11 +2708,15 @@ void prepare_move()
 #endif //DUAL_X_CARRIAGE
 
   #ifdef LASER_FIRE_E
-  if (current_position[E_AXIS] != destination[E_AXIS] && ((current_position[X_AXIS] != destination [X_AXIS]) || (current_position[Y_AXIS] != destination [Y_AXIS]))){
+  if (current_position[E_AXIS] != destination[E_AXIS] && 
+      ((current_position[X_AXIS] != destination[X_AXIS]) || 
+       (current_position[Y_AXIS] != destination[Y_AXIS])) &&
+      current_position[Z_AXIS] == destination[Z_AXIS]
+     ) {
   laser.status = LASER_ON;
   laser.fired = LASER_FIRE_E;
   }
-  if (current_position[E_AXIS] == destination[E_AXIS] && laser.fired == LASER_FIRE_E){
+  if ((current_position[E_AXIS] == destination[E_AXIS] || current_position[Z_AXIS] != destination[Z_AXIS]) && laser.fired == LASER_FIRE_E){
     laser.status = LASER_OFF;
   }
   #endif // LASER_FIRE_E
@@ -2853,18 +2825,6 @@ void manage_inactivity()
         disable_e0();
         disable_e1();
         disable_e2();
-        /*
-        #ifdef LASER
-          if (laser.time / 60000 > 0) {
-        laser.lifetime += laser.time / 60000; // convert to minutes
-        laser.time = 0;
-        Config_StoreSettings();
-         }
-        #endif // LASER
-        */
-    #ifdef LASER_PERIPHERALS
-            laser_peripherals_off();
-    #endif
       }
     }
   }
@@ -2904,13 +2864,6 @@ void manage_inactivity()
       prepare_move();
     }
   #endif
-
-  #ifdef LASER_RASTER
-  if (current_block->laser_duration > 0 && (micros() - laser.last_firing) >= current_block->laser_duration) {
-  SERIAL_ECHOLN("e4");
-    laser_extinguish();
-  }
-  #endif // LASER RASTER
 
   check_axes_activity();
 }

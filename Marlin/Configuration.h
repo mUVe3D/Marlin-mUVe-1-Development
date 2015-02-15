@@ -89,17 +89,6 @@
 #define LASER_FIRE_SPINDLE 11 // fire the laser on M3, extinguish on M5
 #define LASER_FIRE_E 12 // fire the laser when the E axis moves
 
-//// Raster mode enables the laser to etch bitmap data at high speeds.  Increases command buffer size substantially.
-//#define LASER_RASTER
-//#define LASER_MAX_RASTER_LINE 68 // maximum number of base64 encoded pixels per raster gcode command
-//#define LASER_RASTER_ASPECT_RATIO 1.33 // pixels aren't square on most displays, 1.33 == 4:3 aspect ratio
-//#define LASER_RASTER_MM_PER_PULSE 0.2
-
-//// Uncomment the following if the laser cutter is equipped with a peripheral relay board
-//// to control power to an exhaust fan, water pump, laser power supply, etc.
-//#define LASER_PERIPHERALS
-//#define LASER_PERIPHERALS_TIMEOUT 30000  // Number of milliseconds to wait for status signal from peripheral control board
-
 // Uncomment these options for the mUVe 1 3D printer
  #define CUSTOM_MENDEL_NAME "mUVe1 Printer"
  #define LASER_WATTS 0.15
