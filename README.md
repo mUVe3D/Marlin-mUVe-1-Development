@@ -1,7 +1,3 @@
-This firmware is stable but needs a reset after lifting the Z axis, before homing again. It seems the motor disable function is causing a problem. We're still investigating.
-
-TTL Laser control is working and completely configurable. Details below.
-
 Pre-requisite, Install this first - https://bintray.com/olikraus/u8glib/Arduino
 
 Installation Instructions: http://www.muve3d.net/press/supportsources/muve-1-software/
