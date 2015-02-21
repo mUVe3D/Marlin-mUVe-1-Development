@@ -408,9 +408,13 @@
     #endif // LASER_PERIPHERALS
 
   #endif
-
+  
   #if MOTHERBOARD == 33 || MOTHERBOARD == 35 || MOTHERBOARD == 67
+    #ifdef LASER
+    #define FAN_PIN            8
+    #else
     #define FAN_PIN            9 // (Sprinter config)
+    #endif
   #else
     #define FAN_PIN            4 // IO pin. Buffer needed
   #endif

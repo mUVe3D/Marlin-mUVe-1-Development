@@ -193,7 +193,7 @@ static void lcd_implementation_status_screen()
  u8g.setPrintPos(3,6);
  if (current_block->laser_status == LASER_ON) {
 	 u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseron_bmp);
-	 u8g.print(itostr3(current_block->laser_intensity));
+	 u8g.print(itostr3(int(laser.intensity)));
 	 lcd_printPGM(PSTR("%"));
  } else {
 	 u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseroff_bmp);

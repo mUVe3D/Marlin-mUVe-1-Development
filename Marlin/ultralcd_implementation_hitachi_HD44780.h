@@ -371,6 +371,7 @@ static void lcd_implementation_status_screen()
 	lcd.setCursor(0, 0);
 	lcd.print("Laser Power: ");
 	lcd.print(itostr3(int(laser.intensity)));
+
 #else
     int tHotend=int(degHotend(0) + 0.5);
     int tTarget=int(degTargetHotend(0) + 0.5);

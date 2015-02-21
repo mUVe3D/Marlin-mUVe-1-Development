@@ -54,7 +54,9 @@
 #include "Marlin.h"
 #include "planner.h"
 #include "stepper.h"
+#ifndef LASER
 #include "temperature.h"
+#endif
 #include "ultralcd.h"
 #include "language.h"
 
@@ -396,10 +398,12 @@ void getHighESpeed()
   if(!autotemp_enabled){
     return;
   }
+  #ifndef LASER
   if(degTargetHotend0()+2<autotemp_min) {  //probably temperature set to zero.
     return; //do nothing
   }
-
+  #endif
+  
   float high=0.0;
   uint8_t block_index = block_buffer_tail;
 
@@ -428,7 +432,9 @@ void getHighESpeed()
     t=AUTOTEMP_OLDWEIGHT*oldt+(1-AUTOTEMP_OLDWEIGHT)*t;
   }
   oldt=t;
+  #ifndef LASER
   setTargetHotend0(t);
+  #endif
 }
 #endif
 
@@ -522,7 +528,9 @@ void plan_buffer_line(const float &x, const float &y, const float &z, const floa
   // Rest here until there is room in the buffer.
   while(block_buffer_tail == next_buffer_head)
   {
+    #ifndef LASER
     manage_heater();
+    #endif
     manage_inactivity();
     lcd_update();
   }
@@ -677,23 +685,18 @@ block->steps_y = labs((target[X_AXIS]-position[X_AXIS]) - (target[Y_AXIS]-positi
   }
 
   #ifdef LASER
-    block->laser_intensity = laser.intensity;
+    block->laser_intensity = calc_laser_intensity(laser.intensity);
     block->laser_duration = laser.duration;
     block->laser_status = laser.status;
-    block->laser_mode = laser.mode;
-    if (laser.mode == PULSED or laser.mode == RASTER) {
-      block->steps_l = labs(block->millimeters*laser.ppm);
-    } else {
-      block->steps_l = 0;
-    }
-    block->step_event_count = max(block->steps_x, max(block->steps_y, max(block->steps_z, max(block->steps_e, block->steps_l))));
+    laser.micron_counter = 0;
+    laser.time_counter = 0;
 
-    if (laser.diagnostics) {
+    #if LASER_DIAGNOSTICS
 		if (block->laser_status == LASER_ON) {
 		  SERIAL_ECHO_START;
 	      SERIAL_ECHOLNPGM("Laser firing enabled");
 	    }
-    }
+    #endif
   #endif // LASER
 
   float inverse_millimeters = 1.0/block->millimeters;  // Inverse millimeters to remove multiple divides
